@@ -117,7 +117,7 @@ duration = 1
 acceptance = "실제 연락 식별 정보로 공시 요청·시점·재수집 검증"
 status = "blocked"
 evidence = ["docs/management/STATUS.md"]
-blocker = "B-001/B-002/B-003 재개 환경도 SEC 변수 미전달·공급자 접속 차단; 기존 입력 재요청 없이 게시 복구 필요"
+blocker = "B-001/B-003 SEC 변수는 현재 .env에서 로드 확인·누락 오류 해소; 실제 SEC 접속은 proxy_error, 환경 게시 미확인"
 
 [[tasks]]
 id = "1.8"
