@@ -104,7 +104,7 @@ duration = 1
 acceptance = "실제 공급자에서 주식·ETF 수집·품질·재실행 증거 확보"
 status = "blocked"
 evidence = ["docs/management/STATUS.md"]
-blocker = "B-001 네트워크 허용 미반영"
+blocker = "B-001 재개 실제 수집도 proxy_error; 가격 0행 (2026-10-15)"
 
 [[tasks]]
 id = "1.7"
@@ -117,7 +117,7 @@ duration = 1
 acceptance = "실제 연락 식별 정보로 공시 요청·시점·재수집 검증"
 status = "blocked"
 evidence = ["docs/management/STATUS.md"]
-blocker = "B-001/B-003 게시 실패로 네트워크·SEC 변수 런타임 반영 차단; 변수 연결은 생성 확인"
+blocker = "B-001/B-002/B-003 재개 환경도 SEC 변수 미전달·공급자 접속 차단; 기존 입력 재요청 없이 게시 복구 필요"
 
 [[tasks]]
 id = "1.8"
