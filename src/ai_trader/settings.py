@@ -10,3 +10,4 @@ class Settings(BaseSettings):
     execution_mode: Literal["simulation"] = "simulation"
     state_dir: Path = Path(".local")
     kill_switch: bool = False
+    sec_user_agent: str | None = None

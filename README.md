@@ -2,11 +2,19 @@
 
 가치투자·모멘텀·퀀트 관점의 AI가 근거를 제시하고 토론한 뒤, 독립적인 위험관리 규칙을 통과한 포트폴리오를 실행하는 프로젝트입니다.
 
-**현재 단계: 설계 + 개발 기반.** 실제 LLM, RAG 검색, 시장 데이터, 증권사 연결은 아직 없습니다. 포함된 데모는 가짜 종목 `DEMO_A/B`와 규칙 기반 분석을 사용해 분석 → 의견 취합 → 위험 검사 → 가상 체결 → 기록 흐름을 검증합니다. 투자 수익률이나 전략 성능을 입증하는 백테스트가 아닙니다.
+**현재 단계: 개발 기반 + 데이터 수집·검수 MVP 코드.** 실제 공급자 연결은 별도 게이트로 확인하며, 실제 LLM·RAG·증권사 연결은 아직 없습니다. 포함된 의사결정 데모는 가짜 종목 `DEMO_A/B`와 규칙 기반 분석을 사용해 분석 → 의견 취합 → 위험 검사 → 가상 체결 → 기록 흐름을 검증합니다. 투자 수익률이나 전략 성능을 입증하는 백테스트가 아닙니다.
 
 설계: [프로젝트 계획](docs/PROJECT_PLAN.md) · [확정 사항과 보류 사항](docs/DECISIONS.md) · [환경 검증 기록](docs/VALIDATION.md)
 
-추가 설계: [데이터 수집·검수, 운용 역할과 뉴스 활용](docs/OPERATING_MODEL.md). 외부 데이터 수집·품질 검수·뉴스 분석은 설계 단계이며 현재 샘플에 구현되어 있지 않습니다.
+진행 관리: **[WBS 현황](docs/WBS.md)** · [실적·차단 사항](docs/management/STATUS.md) · [기준선·변경관리](docs/management/CONTROL.md). [운용 역할과 뉴스 활용](docs/OPERATING_MODEL.md), [데이터 MVP 사용법](docs/DATA_MVP.md)에서 설계와 현재 구현을 구분합니다.
+
+```bash
+uv run --frozen ai-trader data collect
+uv run --frozen ai-trader data replay <snapshot_id>
+uv run --frozen python scripts/project_status.py --check
+```
+
+데이터 수집은 네트워크 허용과 실제 연락 정보가 포함된 `AI_TRADER_SEC_USER_AGENT` 설정이 필요합니다. 가격·기업행위와 공시 **메타데이터**를 검수하고 원본/스냅샷/Parquet로 저장합니다. 이 결과는 연구용이며 과거 시점 백테스트나 주문 승인이 아닙니다. 키 없는 합성 데모와 수집 기능은 분리되어 있습니다.
 
 ## 시작하기
 

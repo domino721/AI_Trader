@@ -1,0 +1,375 @@
+plan_version = "1.1.0"
+baseline_date = "2026-10-15"
+updated_on = "2026-10-15"
+
+[[tasks]]
+id = "0.1"
+phase = "0/기반"
+name = "기존 설계·코드 기준선 보존"
+owner = "개발"
+depends_on = []
+baseline_start = 0
+duration = 1
+acceptance = "원래 설계 원문·해시와 Git 태그 보존"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["docs/baselines/v1.0/manifest.json"]
+
+[[tasks]]
+id = "0.2"
+phase = "0/기반"
+name = "WBS·CR·기준선 검증 체계"
+owner = "개발"
+depends_on = ["0.1"]
+baseline_start = 1
+duration = 1
+acceptance = "끝까지의 작업·의존성·완료 근거·일정 기준선 검증"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["docs/management/CONTROL.md"]
+
+[[tasks]]
+id = "1.1"
+phase = "1/데이터"
+name = "종목군·연구용 공급자 계약"
+owner = "데이터"
+depends_on = ["0.2"]
+baseline_start = 2
+duration = 1
+acceptance = "표본·데이터 계약·이용 한계·출처 명시"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["docs/DATA_MVP.md"]
+
+[[tasks]]
+id = "1.2"
+phase = "1/데이터"
+name = "가격·기업행위·공시 수집 어댑터"
+owner = "데이터"
+depends_on = ["1.1"]
+baseline_start = 3
+duration = 2
+acceptance = "재시도·체크포인트·공시 과거 페이지와 실패 보고 구현"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["src/ai_trader/data/providers.py"]
+
+[[tasks]]
+id = "1.3"
+phase = "1/데이터"
+name = "독립 검수·격리·품질 보고서"
+owner = "검수"
+depends_on = ["1.2"]
+baseline_start = 5
+duration = 2
+acceptance = "커버리지·중복·단위·OHLC·시점 오류 시 승인 차단"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["src/ai_trader/data/quality.py"]
+
+[[tasks]]
+id = "1.4"
+phase = "1/데이터"
+name = "원본·Parquet·스냅샷·고정 재생"
+owner = "데이터"
+depends_on = ["1.3"]
+baseline_start = 7
+duration = 2
+acceptance = "불변 원본·정정 버전·체크섬·네트워크 없는 동일 재생"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["src/ai_trader/data/archive.py"]
+
+[[tasks]]
+id = "1.5"
+phase = "1/데이터"
+name = "오프라인 실패 시나리오·회귀 검증"
+owner = "검수"
+depends_on = ["1.4"]
+baseline_start = 9
+duration = 2
+acceptance = "오류·재수집·정정·재생·API·CLI 테스트 및 전체 회귀 통과"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["tests/test_data.py", "docs/management/STATUS.md"]
+
+[[tasks]]
+id = "1.6"
+phase = "1/데이터"
+name = "실제 가격·기업행위 연결 검증"
+owner = "데이터"
+depends_on = ["1.5"]
+baseline_start = 11
+duration = 1
+acceptance = "실제 공급자에서 주식·ETF 수집·품질·재실행 증거 확보"
+status = "blocked"
+evidence = ["docs/management/STATUS.md"]
+blocker = "B-001 네트워크 허용 미반영"
+
+[[tasks]]
+id = "1.7"
+phase = "1/데이터"
+name = "실제 SEC 공시 연결 검증"
+owner = "데이터"
+depends_on = ["1.6"]
+baseline_start = 12
+duration = 1
+acceptance = "실제 연락 식별 정보로 공시 요청·시점·재수집 검증"
+status = "blocked"
+evidence = ["docs/management/STATUS.md"]
+blocker = "B-001/B-002 네트워크·SEC 연락 정보 미준비"
+
+[[tasks]]
+id = "1.8"
+phase = "1/데이터"
+name = "데이터 MVP 종료 게이트"
+owner = "검수"
+depends_on = ["1.7"]
+baseline_start = 13
+duration = 1
+acceptance = "1.5·1.6·1.7 완료와 미해결 품질·사용 범위 검토"
+status = "blocked"
+evidence = ["docs/management/STATUS.md"]
+blocker = "실제 공급자 연결 게이트 미완료"
+
+[[tasks]]
+id = "2.1"
+phase = "1/지식"
+name = "문헌·공시 본문·권한·출처 계약"
+owner = "리서치"
+depends_on = ["1.8"]
+baseline_start = 14
+duration = 3
+acceptance = "자료 목록·이용 조건·시점·판본·인용 위치 확보"
+status = "not_started"
+
+[[tasks]]
+id = "2.2"
+phase = "1/지식"
+name = "파싱·청크·RAG 색인·시점 필터"
+owner = "개발"
+depends_on = ["2.1"]
+baseline_start = 17
+duration = 4
+acceptance = "같은 지식 스냅샷 재생·시점 필터·문서 지시 격리"
+status = "not_started"
+
+[[tasks]]
+id = "2.3"
+phase = "1/지식"
+name = "검색·인용 품질 게이트"
+owner = "검수"
+depends_on = ["2.2"]
+baseline_start = 21
+duration = 2
+acceptance = "고정 평가 세트에서 검색·인용·수치·시점 정확성 확인"
+status = "not_started"
+
+[[tasks]]
+id = "3.1"
+phase = "2/AI"
+name = "모델·호출 예산·공급자 어댑터"
+owner = "개발"
+depends_on = ["2.3"]
+baseline_start = 23
+duration = 2
+acceptance = "모델·비용 결정·시간 초과·재시도·응답 보존"
+status = "not_started"
+
+[[tasks]]
+id = "3.2"
+phase = "2/AI"
+name = "철학별 분석·공식 이벤트 해석"
+owner = "리서치"
+depends_on = ["3.1"]
+baseline_start = 25
+duration = 4
+acceptance = "구조화 제안·인용·계산 도구·근거 부족 보류"
+status = "not_started"
+
+[[tasks]]
+id = "3.3"
+phase = "2/AI"
+name = "반론·PM·동조 통제·호출 한도"
+owner = "개발"
+depends_on = ["3.2"]
+baseline_start = 29
+duration = 3
+acceptance = "독립 초안·제한 라운드·반론·포트폴리오 조정 기록"
+status = "not_started"
+
+[[tasks]]
+id = "3.4"
+phase = "2/AI"
+name = "제안·독립 위험 엔진 계약"
+owner = "위험"
+depends_on = ["3.3"]
+baseline_start = 32
+duration = 3
+acceptance = "AI가 한도·거부를 무시하지 못하고 실패 시 주문 없음"
+status = "not_started"
+
+[[tasks]]
+id = "3.5"
+phase = "2/AI"
+name = "AI 근거 품질 종료 게이트"
+owner = "검수"
+depends_on = ["3.4"]
+baseline_start = 35
+duration = 2
+acceptance = "소규모 평가 세트·실패 처리·비용·동조 검증"
+status = "not_started"
+
+[[tasks]]
+id = "4.1"
+phase = "3/연구"
+name = "PIT 데이터·XBRL·종목군·정정 검증"
+owner = "데이터"
+depends_on = ["3.5"]
+baseline_start = 37
+duration = 5
+acceptance = "공급자/예산·재무 단위·당시 정보·상장폐지·수정 이력 검증"
+status = "not_started"
+
+[[tasks]]
+id = "4.2"
+phase = "3/연구"
+name = "연속 포트폴리오 회계·백테스트"
+owner = "개발"
+depends_on = ["4.1"]
+baseline_start = 42
+duration = 5
+acceptance = "현금·매수/매도·기업행위·시점·주문 지연·미체결 검증"
+status = "not_started"
+
+[[tasks]]
+id = "4.3"
+phase = "3/연구"
+name = "비교군·비용·기여 분해"
+owner = "리서치"
+depends_on = ["4.2"]
+baseline_start = 47
+duration = 3
+acceptance = "단일 전략·단순 결합·토론·뉴스 기여와 비용 차감 비교"
+status = "not_started"
+
+[[tasks]]
+id = "4.4"
+phase = "3/연구"
+name = "Walk-forward·미사용 구간 검증"
+owner = "검수"
+depends_on = ["4.3"]
+baseline_start = 50
+duration = 4
+acceptance = "사전 고정 기준·과최적화·지식 오염 한계 보고"
+status = "not_started"
+
+[[tasks]]
+id = "4.5"
+phase = "3/연구"
+name = "연구 종료·모의매매 진입 게이트"
+owner = "위험"
+depends_on = ["4.4"]
+baseline_start = 54
+duration = 2
+acceptance = "품질·위험·성과·재현성 근거와 운영 잔여 과제 확인"
+status = "not_started"
+
+[[tasks]]
+id = "5.1"
+phase = "4/모의"
+name = "브로커·모의계좌·운영 한도 결정"
+owner = "사용자/개발"
+depends_on = ["4.5"]
+baseline_start = 56
+duration = 2
+acceptance = "이용 자격·API·투자금 가정·손실 한도·알림 결정"
+status = "not_started"
+
+[[tasks]]
+id = "5.2"
+phase = "4/모의"
+name = "주문 상태·영속 ID·대사·복구"
+owner = "실행"
+depends_on = ["5.1"]
+baseline_start = 58
+duration = 5
+acceptance = "중복·부분 체결·취소·거절·통신 장애·재시작 검증"
+status = "not_started"
+
+[[tasks]]
+id = "5.3"
+phase = "4/모의"
+name = "스케줄·신선도·알림·조회 화면"
+owner = "운영"
+depends_on = ["5.2"]
+baseline_start = 63
+duration = 4
+acceptance = "거래 일정·계좌/데이터 신선도·경보·운영 조회"
+status = "not_started"
+
+[[tasks]]
+id = "5.4"
+phase = "4/모의"
+name = "전향 관찰·장애 훈련"
+owner = "운영"
+depends_on = ["5.3"]
+baseline_start = 67
+duration = 20
+acceptance = "사전 합의 기간의 모의 관찰·장애/차단/복구 증거; 기간 추정은 미확정"
+status = "not_started"
+
+[[tasks]]
+id = "5.5"
+phase = "4/모의"
+name = "모의 운용 종료 게이트"
+owner = "위험"
+depends_on = ["5.4"]
+baseline_start = 87
+duration = 2
+acceptance = "대사·손실 통제·운영 부담·관찰 결과 검토"
+status = "not_started"
+
+[[tasks]]
+id = "6.1"
+phase = "5/실거래"
+name = "실제 자본·종목·손실·승인 정책"
+owner = "사용자/위험"
+depends_on = ["5.5"]
+baseline_start = 89
+duration = 2
+acceptance = "사용자가 실제 금액·권한·승인·중지/복구 범위를 명시적으로 결정"
+status = "not_started"
+
+[[tasks]]
+id = "6.2"
+phase = "5/실거래"
+name = "실거래 어댑터·환경 분리 검증"
+owner = "실행"
+depends_on = ["6.1"]
+baseline_start = 91
+duration = 4
+acceptance = "모의/실계좌 분리·중복/대사·위험/권한·제한 규모 검증"
+status = "not_started"
+
+[[tasks]]
+id = "6.3"
+phase = "5/실거래"
+name = "제한 규모·수동 승인 운영"
+owner = "운영"
+depends_on = ["6.2"]
+baseline_start = 95
+duration = 10
+acceptance = "실거래 별도 승인 후 사전 합의 기간 관찰·실행 비용 확인"
+status = "not_started"
+
+[[tasks]]
+id = "6.4"
+phase = "5/실거래"
+name = "운영 인계·정기 검토·확대 판단"
+owner = "사용자/운영"
+depends_on = ["6.3"]
+baseline_start = 105
+duration = 2
+acceptance = "운영 지침·검증·변경 이력·재평가; 규모 확대는 별도 결정"
+status = "not_started"

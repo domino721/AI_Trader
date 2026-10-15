@@ -4,15 +4,16 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-trader"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evidence-based investment research and simulated execution foundation"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "duckdb>=1.2,<2",
+  "exchange-calendars>=4.11,<5",
   "fastapi>=0.115,<1",
   "httpx>=0.28,<1",
-  "numpy>=2,<3",
+  "numpy>=2,<2.4",
   "pandas>=2.2,<3",
   "pydantic-settings>=2.7,<3",
   "uvicorn>=0.34,<1",
@@ -29,7 +30,7 @@ packages = ["src/ai_trader"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-  "/src", "/tests", "/docs", "/scripts", "/README.md", "/AGENTS.md",
+  "/src", "/tests", "/docs", "/scripts", "/README.md", "/AGENTS.md", "/CHANGELOG.md",
   "/pyproject.toml", "/uv.lock", "/uv.toml", "/.env.example", "/.python-version",
   "/.github/workflows/ci.yml",
 ]
