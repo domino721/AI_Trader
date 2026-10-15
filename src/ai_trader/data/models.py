@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import AwareDatetime, Field
+from pydantic import AwareDatetime, Field, field_validator
 
 from ai_trader.domain import Record
 
@@ -65,8 +65,17 @@ class Filing(Record):
     report_date: date | None
     accepted_at: AwareDatetime
     observed_at: AwareDatetime
-    primary_document: str = Field(pattern=r"^[A-Za-z0-9_.-]+$")
+    primary_document: str = Field(pattern=r"^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$")
     url: str
+
+    @field_validator("primary_document")
+    @classmethod
+    def relative_document_path(cls, value: str) -> str:
+        # SEC ownership filings may use xslF345X05/report.xml. Keep every
+        # component inside the accession directory without URL normalization.
+        if any(part in {".", ".."} for part in value.split("/")):
+            raise ValueError("document path must stay within the accession directory")
+        return value
 
 
 class Issue(Record):

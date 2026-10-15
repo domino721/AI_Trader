@@ -264,6 +264,57 @@ def test_sec_archive_pagination_and_overlapping_metadata_are_deduplicated(tmp_pa
     assert replay(settings_for(tmp_path), result.snapshot_id)["replay"] == "identical"
 
 
+@pytest.mark.parametrize("document", ["report.htm", "xslF345X05/ownership.xml"])
+def test_sec_relative_document_paths_preserve_citation_and_replay(tmp_path, document):
+    def nested(request):
+        if request.url.host != "data.sec.gov":
+            return response_for(request)
+        body = submissions()
+        body["filings"]["recent"]["primaryDocument"] = [document]
+        return httpx.Response(200, json=body)
+
+    result = gather(tmp_path, nested)
+    assert result.quality.research_approved
+    filing = result.filings[0]
+    assert filing.primary_document == document
+    assert filing.url == (
+        "https://www.sec.gov/Archives/edgar/data/320193/000032019326000001/" + document
+    )
+    assert replay(settings_for(tmp_path), result.snapshot_id)["replay"] == "identical"
+
+
+@pytest.mark.parametrize(
+    "document",
+    [
+        "../report.xml",
+        "xsl/../report.xml",
+        "./report.xml",
+        "/report.xml",
+        "//other.example/report.xml",
+        "https://other.example/report.xml",
+        "xsl//report.xml",
+        "xsl/",
+        "xsl\\report.xml",
+        "%2e%2e/report.xml",
+        "report.xml?redirect=1",
+        "report.xml#fragment",
+    ],
+)
+def test_sec_unsafe_document_paths_block_approval(tmp_path, document):
+    def unsafe(request):
+        if request.url.host != "data.sec.gov":
+            return response_for(request)
+        body = submissions()
+        body["filings"]["recent"]["primaryDocument"] = [document]
+        return httpx.Response(200, json=body)
+
+    result = gather(tmp_path, unsafe)
+    assert not result.quality.research_approved
+    assert not result.filings
+    assert "malformed_response" in {issue.code for issue in result.quality.issues}
+    assert len(result.receipts) == 2
+
+
 def test_sec_column_mismatch_and_identity_absence_block_approval(tmp_path):
     def broken(request):
         if request.url.host != "data.sec.gov":
@@ -274,7 +325,7 @@ def test_sec_column_mismatch_and_identity_absence_block_approval(tmp_path):
 
     result = gather(tmp_path, broken)
     assert "misaligned_sec_columns" in {issue.code for issue in result.quality.issues}
-    no_identity = Settings(state_dir=tmp_path, _env_file=None)
+    no_identity = Settings(state_dir=tmp_path, sec_user_agent=None, _env_file=None)
     result = gather(tmp_path, settings=no_identity)
     assert "missing_sec_user_agent" in {issue.code for issue in result.quality.issues}
     assert not result.quality.research_approved
@@ -446,7 +497,9 @@ def test_cli_blocked_collection_returns_nonzero_and_machine_readable_report(
 ):
     from ai_trader import cli
 
-    result = gather(tmp_path, settings=Settings(state_dir=tmp_path, _env_file=None))
+    result = gather(
+        tmp_path, settings=Settings(state_dir=tmp_path, sec_user_agent=None, _env_file=None)
+    )
     monkeypatch.setattr(cli, "collect", lambda *args, **kwargs: result)
     monkeypatch.setattr(
         "sys.argv", ["ai-trader", "data", "collect", "--start", str(START), "--end", str(END)]

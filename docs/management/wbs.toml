@@ -102,9 +102,9 @@ depends_on = ["1.5"]
 baseline_start = 11
 duration = 1
 acceptance = "실제 공급자에서 주식·ETF 수집·품질·재실행 증거 확보"
-status = "blocked"
-evidence = ["docs/management/STATUS.md"]
-blocker = "B-001 재개 실제 수집도 proxy_error; 가격 0행 (2026-10-15)"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["docs/management/DATA_VALIDATION_2026-10-15.md", "docs/management/STATUS.md"]
 
 [[tasks]]
 id = "1.7"
@@ -115,9 +115,9 @@ depends_on = ["1.6"]
 baseline_start = 12
 duration = 1
 acceptance = "실제 연락 식별 정보로 공시 요청·시점·재수집 검증"
-status = "blocked"
-evidence = ["docs/management/STATUS.md"]
-blocker = "B-001/B-003 SEC 변수는 현재 .env에서 로드 확인·누락 오류 해소; 실제 SEC 접속은 proxy_error, 환경 게시 미확인"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["docs/management/DATA_VALIDATION_2026-10-15.md", "docs/management/STATUS.md"]
 
 [[tasks]]
 id = "1.8"
@@ -128,9 +128,9 @@ depends_on = ["1.7"]
 baseline_start = 13
 duration = 1
 acceptance = "1.5·1.6·1.7 완료와 미해결 품질·사용 범위 검토"
-status = "blocked"
-evidence = ["docs/management/STATUS.md"]
-blocker = "실제 공급자 연결 게이트 미완료"
+status = "done"
+actual_finish = "2026-10-15"
+evidence = ["docs/management/DATA_VALIDATION_2026-10-15.md", "docs/management/STATUS.md"]
 
 [[tasks]]
 id = "2.1"
