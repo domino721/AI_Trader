@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "date": "2026-10-15",
+  "scope": "Baseline before data MVP implementation",
+  "sha256": {
+    "PROJECT_PLAN.md": "45b0a2e6e0b5770e39b6e1b13786305084f358f021db0b669d2429e1174e7484",
+    "OPERATING_MODEL.md": "287ff49bff11d3ce0e9dadf936b5cc05bc9bd4b3df8879ed5376e5b228d072b9",
+    "DECISIONS.md": "f04c6242e210f3d6acf176a04e0eb63075732d46bcd26d97e6587f07ca61759e"
+  }
+}
