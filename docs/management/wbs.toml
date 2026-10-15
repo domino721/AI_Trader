@@ -117,7 +117,7 @@ duration = 1
 acceptance = "실제 연락 식별 정보로 공시 요청·시점·재수집 검증"
 status = "blocked"
 evidence = ["docs/management/STATUS.md"]
-blocker = "B-001/B-002 네트워크·SEC 연락 정보 미준비"
+blocker = "B-001/B-003 게시 실패로 네트워크·SEC 변수 런타임 반영 차단; 변수 연결은 생성 확인"
 
 [[tasks]]
 id = "1.8"
