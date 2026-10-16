@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "documents": [
+    {
+      "document_id": "plos-0300781",
+      "kind": "paper",
+      "source_url": "https://doi.org/10.1371/journal.pone.0300781",
+      "title": "Cross-asset momentum and the hybrid fund transmission mechanism in China’s stock and bond markets",
+      "authors": [
+        "Xiaowei Wang",
+        "Rui Wang",
+        "Yichun Zhang"
+      ],
+      "edition": "Publisher XML retrieved 2026-10-16",
+      "published_on": "2024-03-21",
+      "first_observed_at": "2026-10-16T00:43:15.243025+00:00",
+      "retrieved_at": "2026-10-16T00:43:15.243025+00:00",
+      "content_path": ".local/knowledge/raw/plos-0300781.xml",
+      "content_sha256": "6452ad7c7e9a0bf32ff067f21a0cdc38784ff79a46e18f6a3c62ac0b5cb67449",
+      "media_type": "application/xml",
+      "rights": {
+        "status": "approved",
+        "license_name": "CC-BY-4.0",
+        "evidence_url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0300781",
+        "checked_at": "2026-10-16T00:43:15.243025+00:00",
+        "allowed_uses": [
+          "local_storage",
+          "indexing",
+          "model_context"
+        ],
+        "attribution": "Wang X, Wang R, Zhang Y (2024), PLoS ONE 19(3): e0300781, doi:10.1371/journal.pone.0300781; CC BY 4.0.",
+        "conditions": "Retain author, title, source and license attribution; link https://creativecommons.org/licenses/by/4.0/ and identify derived changes. No implication of endorsement. Raw article is kept outside Git."
+      },
+      "locations": [
+        {
+          "location_id": "sec001",
+          "label": "1. Introduction",
+          "marker": "id=\"sec001\""
+        }
+      ],
+      "limitations": [
+        "China stock/bond cross-asset research; methodological comparison only, not evidence of a US equity strategy.",
+        "Publication date has day precision; no independently evidenced historical availability of these exact retrieved bytes. Conservative availability is first observation in 2026.",
+        "Current publisher XML can contain later corrections; no historical point-in-time certification.",
+        "Article metadata is not a validation of its findings."
+      ],
+      "retrieval_url": "https://journals.plos.org/plosone/article/file?id=10.1371%2Fjournal.pone.0300781&type=manuscript"
+    }
+  ]
+}

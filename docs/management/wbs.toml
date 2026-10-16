@@ -1,6 +1,6 @@
 plan_version = "1.1.0"
 baseline_date = "2026-10-15"
-updated_on = "2026-10-15"
+updated_on = "2026-10-16"
 
 [[tasks]]
 id = "0.1"
@@ -141,7 +141,9 @@ depends_on = ["1.8"]
 baseline_start = 14
 duration = 3
 acceptance = "자료 목록·이용 조건·시점·판본·인용 위치 확보"
-status = "not_started"
+status = "in_progress"
+evidence = ["docs/KNOWLEDGE_CONTRACT.md", "tests/test_knowledge.py", "docs/knowledge/catalog.json", "docs/knowledge/public-catalog.json"]
+blocker = "계약·4개 자료 검증 완료. 실제 SEC 본문·위치는 기존 연락 설정이 연결된 환경에서 확보 대기. WBS 2.2 미착수."
 
 [[tasks]]
 id = "2.2"

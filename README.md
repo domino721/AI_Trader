@@ -60,5 +60,7 @@ Python/uv + FastAPI/Pydantic + NumPy/pandas/DuckDB + SQLite + pytest/Ruff를 사
 
 `uv.lock`을 유지하고 설치에는 `uv sync --locked`를 사용합니다. `uv.toml`은 캐시를 `.local/uv-cache`에 둡니다. `.venv`, `.local`, 원자료와 비밀 설정은 Git에서 제외됩니다. 로컬 SQLite는 데모 감사 기록만 저장하며 실거래 장부를 대체하지 않습니다. 빌드는 `uv build`로 확인합니다.
 
+현재 WBS 2.1에서 [지식 자료 계약](docs/KNOWLEDGE_CONTRACT.md)을 구현했습니다. 원칙 3개와 공개 논문 1편의 권한·판본·해시·시점·인용 위치를 검증했으며 실제 SEC 공시 본문 표본은 아직 미확보입니다. 파싱·검색 색인·LLM 연결은 후속 단계입니다.
+
 다음 개발 목표는 공개 자료의 출처·시점 관리와 검색, 실제 LLM의 구조화된 분석·반론, 기준 전략과 비교할 시점 일관성 있는 백테스트입니다. [단계별 완료 조건](docs/PROJECT_PLAN.md)을 따릅니다.
 

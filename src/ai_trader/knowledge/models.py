@@ -1,0 +1,171 @@
+"""Versioned source contracts, independent of any parser, index or LLM provider."""
+
+import hashlib
+from datetime import date, datetime
+from typing import Annotated, Literal
+
+from pydantic import (
+    AfterValidator,
+    AwareDatetime,
+    Field,
+    HttpUrl,
+    StringConstraints,
+    model_validator,
+)
+
+from ai_trader.domain import Record
+
+Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+Identifier = Annotated[str, Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,99}$")]
+Purpose = Literal["local_storage", "indexing", "model_context"]
+
+
+def public_url(value: HttpUrl) -> HttpUrl:
+    if value.username or value.password:
+        raise ValueError("source references must not contain credentials")
+    return value
+
+
+SourceUrl = Annotated[HttpUrl, AfterValidator(public_url)]
+
+
+class UsageRights(Record):
+    status: Literal["approved", "pending", "denied"] = "pending"
+    license_name: Text
+    evidence_url: SourceUrl
+    checked_at: AwareDatetime
+    allowed_uses: tuple[Purpose, ...] = ()
+    attribution: Text
+    conditions: Text
+
+    @model_validator(mode="after")
+    def validate_grant(self) -> "UsageRights":
+        if len(self.allowed_uses) != len(set(self.allowed_uses)):
+            raise ValueError("duplicate permitted use")
+        if (self.status == "approved") != bool(self.allowed_uses):
+            raise ValueError("only approved rights may grant nonempty permitted uses")
+        return self
+
+
+class FilingIdentity(Record):
+    cik: str = Field(pattern=r"^\d{10}$")
+    accession: str = Field(pattern=r"^\d{10}-\d{2}-\d{6}$")
+    form: Text
+    accepted_at: AwareDatetime
+    report_date: date | None = None
+    # Acceptance is not proof of actual dissemination or provider arrival time.
+
+
+class CitationLocation(Record):
+    location_id: Identifier
+    label: Text
+    # An exact UTF-8 marker in this specific file, not an invented page number.
+    marker: Text
+
+
+class Document(Record):
+    schema_version: Literal["1.0"] = "1.0"
+    document_id: Identifier
+    kind: Literal["original_principle", "paper", "sec_filing"]
+    source_url: SourceUrl
+    retrieval_url: SourceUrl
+    title: Text
+    authors: tuple[Text, ...] = Field(min_length=1)
+    edition: Text
+    published_on: date
+    first_observed_at: AwareDatetime
+    retrieved_at: AwareDatetime
+    # Leave unknown unless the precise public availability time is evidenced.
+    public_available_at: AwareDatetime | None = None
+    availability_evidence_url: SourceUrl | None = None
+    content_path: Text
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    media_type: Literal["text/markdown", "text/html", "application/xml", "text/plain"]
+    rights: UsageRights
+    locations: tuple[CitationLocation, ...] = Field(min_length=1)
+    limitations: tuple[Text, ...] = Field(min_length=1)
+    supersedes: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    filing: FilingIdentity | None = None
+
+    @model_validator(mode="after")
+    def validate_provenance(self) -> "Document":
+        if self.first_observed_at > self.retrieved_at:
+            raise ValueError("first observation cannot follow retrieval")
+        if self.published_on > self.first_observed_at.date():
+            raise ValueError("publication date cannot follow first observation")
+        if (self.public_available_at is None) != (self.availability_evidence_url is None):
+            raise ValueError("public availability requires both timestamp and evidence")
+        if self.public_available_at is not None:
+            if self.public_available_at > self.first_observed_at:
+                raise ValueError("public availability cannot follow first observation")
+            if self.public_available_at.date() < self.published_on:
+                raise ValueError("public availability cannot precede publication date")
+        if (self.kind == "sec_filing") != (self.filing is not None):
+            raise ValueError("only SEC filings require filing identity")
+        if self.filing is not None:
+            prefix = (
+                f"/Archives/edgar/data/{int(self.filing.cik)}/"
+                f"{self.filing.accession.replace('-', '')}/"
+            )
+            suffix = (self.source_url.path or "").removeprefix(prefix)
+            if (
+                self.source_url.scheme != "https"
+                or self.source_url.host != "www.sec.gov"
+                or not (self.source_url.path or "").startswith(prefix)
+                or not suffix
+                or "%" in suffix
+                or any(part in {".", "..", ""} for part in suffix.split("/"))
+                or self.source_url.query
+                or self.source_url.fragment
+                or self.source_url.port != 443
+            ):
+                raise ValueError("filing source must match canonical SEC accession directory")
+            if self.retrieval_url != self.source_url:
+                raise ValueError("filing receipt must refer to the same primary document URL")
+            if self.filing.accepted_at > self.available_at:
+                raise ValueError("filing cannot be available before acceptance")
+            if self.filing.report_date and self.filing.report_date > self.published_on:
+                raise ValueError("report date cannot follow publication")
+        ids = [location.location_id for location in self.locations]
+        if len(ids) != len(set(ids)):
+            raise ValueError("duplicate citation location")
+        return self
+
+    @property
+    def available_at(self) -> datetime:
+        # Publication dates and EDGAR acceptance alone never backdate knowledge.
+        return self.public_available_at or self.first_observed_at
+
+    @property
+    def version_id(self) -> str:
+        # Bind bytes, edition, rights, timestamps, correction links and locations.
+        return hashlib.sha256(self.model_dump_json().encode()).hexdigest()
+
+
+class Catalog(Record):
+    schema_version: Literal["1.0"] = "1.0"
+    documents: tuple[Document, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_versions(self) -> "Catalog":
+        versions = {document.version_id: document for document in self.documents}
+        if len(versions) != len(self.documents):
+            raise ValueError("duplicate document version")
+        roots, successors = set(), set()
+        for document in self.documents:
+            if document.supersedes:
+                if document.supersedes in successors:
+                    raise ValueError("ambiguous correction branches")
+                successors.add(document.supersedes)
+                previous = versions.get(document.supersedes)
+                if previous is None or previous.document_id != document.document_id:
+                    raise ValueError(
+                        "correction must reference an included version of same document"
+                    )
+                if previous.available_at >= document.available_at:
+                    raise ValueError("correction must become available after its predecessor")
+            else:
+                if document.document_id in roots:
+                    raise ValueError("multiple versions require an explicit correction chain")
+                roots.add(document.document_id)
+        return self

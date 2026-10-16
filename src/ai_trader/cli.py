@@ -1,9 +1,11 @@
 import argparse
 import json
-from datetime import date
+from datetime import date, datetime
+from pathlib import Path
 
 from ai_trader.data.calendar import default_range
 from ai_trader.data.pipeline import collect, replay, summary
+from ai_trader.knowledge.catalog import check_catalog, load_catalog
 from ai_trader.service import run_demo
 from ai_trader.settings import Settings
 
@@ -23,7 +25,23 @@ def main() -> None:
     gather.add_argument("--refresh", action="store_true")
     verify = actions.add_parser("replay")
     verify.add_argument("snapshot_id")
+    knowledge = commands.add_parser("knowledge", help="verify local document provenance")
+    knowledge.add_argument("--catalog", type=Path, required=True)
+    knowledge.add_argument("--root", type=Path, default=Path("."))
+    knowledge.add_argument("--as-of", type=datetime.fromisoformat, required=True)
+    knowledge.add_argument(
+        "--purpose", choices=("local_storage", "indexing", "model_context"), default="indexing"
+    )
     args = parser.parse_args()
+    if args.command == "knowledge":
+        try:
+            result = check_catalog(load_catalog(args.catalog), args.root, args.as_of, args.purpose)
+        except (OSError, ValueError) as error:
+            parser.exit(1, f"Knowledge operation failed: {type(error).__name__}\n")
+        print(json.dumps(result, indent=2))
+        if result["status"] != "passed":
+            raise SystemExit(2)
+        return
     settings = Settings()
     if args.command == "data":
         try:

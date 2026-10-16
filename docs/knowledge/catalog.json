@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0",
+  "documents": [
+    {
+      "document_id": "project-value",
+      "kind": "original_principle",
+      "source_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/value-principles-v1.md",
+      "title": "Project value research principles",
+      "authors": [
+        "AI_Trader project"
+      ],
+      "edition": "1.0",
+      "published_on": "2026-10-16",
+      "first_observed_at": "2026-10-16T00:42:45.902528+00:00",
+      "retrieved_at": "2026-10-16T00:42:45.902528+00:00",
+      "content_path": "docs/knowledge/value-principles-v1.md",
+      "content_sha256": "d924a6478fab178cc2c1c7b3e28b86ed84bb8a9a03a8ab67829a80fd5b08553d",
+      "media_type": "text/markdown",
+      "rights": {
+        "status": "approved",
+        "license_name": "Project-original internal research permission",
+        "evidence_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/value-principles-v1.md",
+        "checked_at": "2026-10-16T00:42:45.902528+00:00",
+        "allowed_uses": [
+          "local_storage",
+          "indexing",
+          "model_context"
+        ],
+        "attribution": "AI_Trader project, 2026, original research principles v1.0",
+        "conditions": "Internal use in this project only; no third-party book text; no grant for redistribution or model training."
+      },
+      "locations": [
+        {
+          "location_id": "section-1",
+          "label": "Cash flows and assumptions",
+          "marker": "## Cash flows and assumptions"
+        }
+      ],
+      "limitations": [
+        "Original hypotheses; no validated performance.",
+        "Written in 2026; unavailable for earlier historical decisions.",
+        "No parser, RAG index or LLM integration is implied."
+      ],
+      "retrieval_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/value-principles-v1.md"
+    },
+    {
+      "document_id": "project-momentum",
+      "kind": "original_principle",
+      "source_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/momentum-principles-v1.md",
+      "title": "Project momentum research principles",
+      "authors": [
+        "AI_Trader project"
+      ],
+      "edition": "1.0",
+      "published_on": "2026-10-16",
+      "first_observed_at": "2026-10-16T00:42:45.902528+00:00",
+      "retrieved_at": "2026-10-16T00:42:45.902528+00:00",
+      "content_path": "docs/knowledge/momentum-principles-v1.md",
+      "content_sha256": "df7339b033b7947de1b98db3016aaa09fa26b2c07fa3d7e228bfff49b9b23c2d",
+      "media_type": "text/markdown",
+      "rights": {
+        "status": "approved",
+        "license_name": "Project-original internal research permission",
+        "evidence_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/momentum-principles-v1.md",
+        "checked_at": "2026-10-16T00:42:45.902528+00:00",
+        "allowed_uses": [
+          "local_storage",
+          "indexing",
+          "model_context"
+        ],
+        "attribution": "AI_Trader project, 2026, original research principles v1.0",
+        "conditions": "Internal use in this project only; no third-party book text; no grant for redistribution or model training."
+      },
+      "locations": [
+        {
+          "location_id": "section-1",
+          "label": "Signal specification",
+          "marker": "## Signal specification"
+        }
+      ],
+      "limitations": [
+        "Original hypotheses; no validated performance.",
+        "Written in 2026; unavailable for earlier historical decisions.",
+        "No parser, RAG index or LLM integration is implied."
+      ],
+      "retrieval_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/momentum-principles-v1.md"
+    },
+    {
+      "document_id": "project-quant",
+      "kind": "original_principle",
+      "source_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/quant-principles-v1.md",
+      "title": "Project quantitative research principles",
+      "authors": [
+        "AI_Trader project"
+      ],
+      "edition": "1.0",
+      "published_on": "2026-10-16",
+      "first_observed_at": "2026-10-16T00:42:45.902528+00:00",
+      "retrieved_at": "2026-10-16T00:42:45.902528+00:00",
+      "content_path": "docs/knowledge/quant-principles-v1.md",
+      "content_sha256": "a79e4d7da7167e1220dcacef4bc2cfae558f5da75e4b666c09776a455962be2f",
+      "media_type": "text/markdown",
+      "rights": {
+        "status": "approved",
+        "license_name": "Project-original internal research permission",
+        "evidence_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/quant-principles-v1.md",
+        "checked_at": "2026-10-16T00:42:45.902528+00:00",
+        "allowed_uses": [
+          "local_storage",
+          "indexing",
+          "model_context"
+        ],
+        "attribution": "AI_Trader project, 2026, original research principles v1.0",
+        "conditions": "Internal use in this project only; no third-party book text; no grant for redistribution or model training."
+      },
+      "locations": [
+        {
+          "location_id": "section-1",
+          "label": "Experiment specification",
+          "marker": "## Experiment specification"
+        }
+      ],
+      "limitations": [
+        "Original hypotheses; no validated performance.",
+        "Written in 2026; unavailable for earlier historical decisions.",
+        "No parser, RAG index or LLM integration is implied."
+      ],
+      "retrieval_url": "https://github.com/domino721/AI_Trader/blob/main/docs/knowledge/quant-principles-v1.md"
+    }
+  ]
+}
