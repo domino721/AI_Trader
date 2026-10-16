@@ -8,6 +8,8 @@ from ai_trader.data.pipeline import collect, replay, summary
 from ai_trader.knowledge.catalog import check_catalog, load_catalog
 from ai_trader.knowledge.index import (
     build_knowledge_snapshot,
+    evaluate_knowledge_benchmark,
+    load_evaluation_benchmark,
     load_knowledge_snapshot,
     replay_knowledge_snapshot,
     search_knowledge,
@@ -43,10 +45,25 @@ def main() -> None:
     knowledge.add_argument("--snapshot-id")
     knowledge.add_argument("--query")
     knowledge.add_argument("--top-k", type=int, default=5)
+    knowledge.add_argument("--evaluate-benchmark", type=Path)
     args = parser.parse_args()
     if args.command == "knowledge":
         settings = Settings()
         try:
+            if args.evaluate_benchmark is not None:
+                bench = load_evaluation_benchmark(args.evaluate_benchmark)
+                if args.snapshot_id:
+                    snap = load_knowledge_snapshot(settings.state_dir, args.snapshot_id)
+                else:
+                    cat_path = args.catalog or (args.root / Path(bench.catalog_path))
+                    snap = build_knowledge_snapshot(
+                        load_catalog(cat_path), args.root, settings.state_dir
+                    )
+                eval_report = evaluate_knowledge_benchmark(bench, snap)
+                print(eval_report.model_dump_json(indent=2))
+                if eval_report.status != "passed":
+                    raise SystemExit(2)
+                return
             if args.replay_snapshot:
                 result = replay_knowledge_snapshot(
                     settings.state_dir, args.replay_snapshot, args.root

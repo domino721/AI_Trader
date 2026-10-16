@@ -1,6 +1,6 @@
-# 지식 자료 계약 및 스냅샷·색인 — WBS 2.1–2.2
+# 지식 자료 계약·스냅샷·색인·품질 게이트 — WBS 2.1–2.3
 
-2026-10-16, 한국 시간. 현재 계획 v1.1.0의 출처 계약(WBS 2.1)과 파싱·청크·RAG 색인·시점 필터(WBS 2.2) 구현이며 범위·순서·일정 기준선은 변경하지 않습니다. WBS 2.1 및 2.2는 **완료**했으며, 다음 순서는 고정 평가 세트를 통한 검색·인용 품질 게이트(WBS 2.3)입니다.
+2026-10-16, 한국 시간. 현재 계획 v1.1.0의 출처 계약(WBS 2.1), 파싱·청크·RAG 색인·시점 필터(WBS 2.2), 고정 평가 세트 기반 검색·인용 품질 게이트(WBS 2.3) 구현이며 범위·순서·일정 기준선은 변경하지 않습니다. **WBS 2.1·2.2·2.3(단계 1 지식 영역)을 모두 완료**했으며, 다음 순서는 모델·호출 예산·공급자 어댑터(WBS 3.1)입니다.
 
 ## 현재 확보·검증한 자료
 
@@ -8,9 +8,9 @@
 | --- | --- | --- | --- |
 | `docs/knowledge/catalog.json` | 프로젝트가 새로 작성한 가치·모멘텀·퀀트 원칙 3개 (총 9개 절 위치) | 원문 SHA-256, 절 제목 marker, 판본, 권한과 최초 관측 시각, 스냅샷 9청크 동일 재생 | 원칙·반증·실험 기준. 저서 발췌나 실증 전략이 아님 |
 | `docs/knowledge/public-catalog.json` (논문) | Wang·Wang·Zhang (2024), PLoS ONE 19(3): e0300781 | 출판사 XML HTTP 200, 318,832바이트, 본문 `sec001`–`sec003`, CC BY 4.0 고지 | 중국 주식·채권 교차 자산 방법론 비교. 미국 주식 성과 근거로 사용하지 않음 |
-| `docs/knowledge/public-catalog.json` (SEC 공시 본문) | AAPL 10-Q (`0000320193-26-000020`), MSFT 10-K (`0001193125-26-323660`), MSFT 8-K (`0001193125-26-380280`) | SEC EDGAR primary HTML HTTP 200 (1,018,319 / 8,585,610 / 28,668바이트), SHA-256, Item별 고유 marker 9개, 스냅샷 105청크 동일 재생 | 기업 공시 본문 표본. 접수 시각(`accepted_at`)을 과거 피드 도착 시각으로 소급하지 않으며, 제3자 첨부물(Exhibit 99.1 등)은 제외 |
+| `docs/knowledge/public-catalog.json` (SEC 공시 본문) | AAPL 10-Q (`0000320193-26-000020`), MSFT 10-K (`0001193125-26-323660`), MSFT 8-K (`0001193125-26-380280`) | SEC EDGAR primary HTML HTTP 200 (1,018,319 / 8,585,610 / 28,668바이트), SHA-256, Item별 고유 marker 9개, 스냅샷 245청크 동일 재생 | 기업 공시 본문 표본. 접수 시각(`accepted_at`)을 과거 피드 도착 시각으로 소급하지 않으며, 제3자 첨부물(Exhibit 99.1 등)은 제외 |
 
-외부 논문 XML과 SEC 공시 HTML 원문은 `.local/knowledge/raw/`에만 보관하고 Git에는 메타데이터·해시·인용 위치만 넣습니다. 이 파일이 없는 새 checkout에서 공개 목록 검증이 실패하는 것은 정상입니다. 새 다운로드가 달라지면 기존 해시를 덮어쓰지 않고 새 판본으로 기록합니다. 직접 작성한 3개 원칙 문서와 검증·스냅샷·검색 테스트는 네트워크 없이 재현됩니다.
+외부 논문 XML과 SEC 공시 HTML 원문은 `.local/knowledge/raw/`에만 보관하고 Git에는 메타데이터·해시·인용 위치만 넣습니다. 이 파일이 없는 새 checkout에서 공개 목록 검증이 실패하는 것은 정상입니다. 새 다운로드가 달라지면 기존 해시를 덮어쓰지 않고 새 판본으로 기록합니다. 직접 작성한 3개 원칙 문서와 검증·스냅샷·검색·평가 벤치마크 테스트는 네트워크 없이 재현됩니다.
 
 로컬 `.env`(Git 제외, 권한 `0600`)에 사용자 연락 식별 설정을 연결하여 SEC fair-access 정책(초당 1회 이하 직렬 요청)에 따라 primary document를 수집·검증했습니다. 연락 정보는 문서나 출력에 기록하지 않습니다.
 
@@ -35,13 +35,27 @@
 - **시점·권한·정정 필터 검색**: `search_knowledge`는 질의 시점에 `available_at <= decision_time`, 요청된 `purpose`(기본 `model_context`) 허용 여부, 그리고 `decision_time` 이전에 도착한 정정본(`supersedes`) 존재 여부를 먼저 필터링합니다. 부적격 문서는 사유와 함께 `excluded_documents`에 기록되고 검색 후보에서 제외됩니다.
 - **문서 지시 격리 (`untrusted_data_only=True`)**: 모든 청크와 검색 결과는 데이터로만 취급되며 어떤 툴 실행·주문·프롬프트 변경 권한도 갖지 않습니다. 본문 내 프롬프트 삽입 의심 패턴(`ignore ... instructions`, `submit a trade`, `system prompt` 등)은 실행하지 않고 `instruction_like=True`로 표시해 후속 검토 게이트에서 식별할 수 있게 합니다.
 
+## 고정 평가 세트 기반 검색·인용 품질 게이트 (WBS 2.3)
+
+`evaluate_knowledge_benchmark` (`--evaluate-benchmark`)는 고정된 평가 세트(`EvaluationBenchmark`)를 실행하여 다음 4가지 정확도 지표를 측정하고 하나라도 실패하면 종료 코드 2(`status=blocked`)로 차단합니다.
+
+- `hit_rate`: 기대한 `expected_document_id`가 상위 `top_k` 검색 결과에 포함된 비율.
+- `citation_accuracy`: 기대한 `(expected_document_id, expected_location_id)` 인용 위치가 상위 `top_k`에 정확히 적중한 비율.
+- `numeric_accuracy`: 적중한 인용 위치 청크 본문에 필수 수치·구문(`required_substrings`, 예: Apple 순매출 `78,678` / `109,417`, Microsoft 매출 `64,696` / `267,143`, PLOS 시장 규모 `12 trillion US dollars` 등)이 변형 없이 보존된 비율.
+- `temporal_guard_accuracy`: 관측 이전 시각(`decision_time < available_at`) 또는 공시 접수 직후·관측 이전 시각으로 질의했을 때 결과 0건(`expect_empty=true`) 및 기대 제외 사유(`unavailable_at_decision`)가 정확히 기록된 비율.
+
+| 벤치마크 파일 | 대상 스냅샷 | 케이스 수 | Hit Rate | Citation Accuracy | Numeric Accuracy | Temporal Guard Accuracy | 판정 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `docs/knowledge/eval-benchmark.json` | 원칙 (`ba4191bf...`) | 8 (양성 7, 시점차단 1) | 1.0 | 1.0 | 1.0 | 1.0 | `passed` |
+| `docs/knowledge/public-eval-benchmark.json` | 공개/SEC (`9519c2c5...`) | 6 (양성 5, 시점차단 1) | 1.0 | 1.0 | 1.0 | 1.0 | `passed` |
+
 ## 시점 규칙
 
 기본 `available_at`은 최초 관측 시각입니다. 발행일만 알려진 논문을 그날 자정으로 소급하지 않으며, EDGAR 접수 시각을 실제 배포 시각으로 취급하지 않습니다. 정확한 공개 시각과 증거 URL이 함께 있을 때만 `public_available_at`을 지정할 수 있습니다. 회계 대상일은 이용 가능 시점이 아닙니다.
 
-현재 XML·SEC 공시 본문·원칙 문서는 모두 2026-10-16에 최초 관측했습니다. 논문의 2024년 발행일이나 공시의 2026년 7–9월 접수 시각은 현재 파일의 당시 가용성을 입증하지 않으므로 그 이전 의사결정에는 부적격입니다. 나중 정정이 도착해도 그 이전 시점의 원문 판본은 보존하며 미래 정정으로 과거 근거를 덮어쓰지 않습니다. 이는 지식 계약·색인 검사이며 PIT 데이터·LLM 역사 지식 오염·백테스트·거래 승인은 별도입니다.
+현재 XML·SEC 공시 본문·원칙 문서는 모두 2026-10-16에 최초 관측했습니다. 논문의 2024년 발행일이나 공시의 2026년 7–9월 접수 시각은 현재 파일의 당시 가용성을 입증하지 않으므로 그 이전 의사결정에는 부적격입니다. 나중 정정이 도착해도 그 이전 시점의 원문 판본은 보존하며 미래 정정으로 과거 근거를 덮어쓰지 않습니다. 이는 지식 계약·색인·검색 품질 검사이며 PIT 데이터·LLM 역사 지식 오염·백테스트·거래 승인은 별도입니다.
 
-## 검증·스냅샷·검색 실행
+## 검증·스냅샷·검색·평가 실행
 
 저장소 루트에서 시간대를 포함한 **실제 평가 기준 시각**을 지정합니다.
 
@@ -52,8 +66,8 @@ uv run --frozen ai-trader knowledge --catalog docs/knowledge/public-catalog.json
   --as-of 2026-10-16T23:59:59+09:00
 uv run --frozen ai-trader knowledge --catalog docs/knowledge/catalog.json --build-snapshot
 uv run --frozen ai-trader knowledge --replay-snapshot <snapshot_id>
-uv run --frozen ai-trader knowledge --snapshot-id <snapshot_id> \
-  --query "cash flow valuation leverage" --as-of 2026-10-16T23:59:59+09:00 --purpose model_context
+uv run --frozen ai-trader knowledge --evaluate-benchmark docs/knowledge/eval-benchmark.json
+uv run --frozen ai-trader knowledge --evaluate-benchmark docs/knowledge/public-eval-benchmark.json
 ```
 
 ## 외부 근거 — 확인일 2026-10-16
@@ -62,7 +76,8 @@ uv run --frozen ai-trader knowledge --snapshot-id <snapshot_id> \
 - [SEC 재사용 FAQ](https://www.sec.gov/files/about/webmaster-faq.htm)와 [배포 정책](https://www.sec.gov/about/privacy-information#dissemination): 공시 텍스트와 예외 자료를 구분하는 출처 검토 근거로만 사용합니다. 접근 가능하다는 이유만으로 임의 첨부물·그림·개인정보까지 일괄 승인하지 않습니다.
 - [SEC 개발자 안내](https://www.sec.gov/about/developer-resources), [접수와 웹 공개 사이 지연 안내](https://www.sec.gov/files/about/webmaster-faq.htm): 접수 시각만으로 실제 전달 시각을 인증하지 않습니다. 자동 수집에는 기존 프로젝트의 식별 정보·속도 제한을 유지합니다.
 
-## 다음 단계 (WBS 2.3)
+## 다음 단계 (WBS 3.1)
 
-고정된 검색·인용 평가 세트를 구성하여 검색 적중률, 인용 위치 일치, 수치 보존, 시점 경계 위반 차단, 프롬프트 삽입 격리를 정량 점검하는 **WBS 2.3 검색·인용 품질 게이트**를 수행합니다.
+단계 1(데이터 1.1–1.8 및 지식 2.1–2.3)이 모두 완료되었습니다. 다음 작업은 단계 2(AI 토론)의 첫 작업인 **WBS 3.1 모델·호출 예산·공급자 어댑터**입니다.
+
 

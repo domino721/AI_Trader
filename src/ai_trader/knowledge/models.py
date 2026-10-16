@@ -251,3 +251,70 @@ class SearchReport(Record):
     untrusted_data_only: Literal[True] = True
     historical_backtest_approved: Literal[False] = False
     trading_approved: Literal[False] = False
+
+
+class EvaluationCase(Record):
+    case_id: Identifier
+    description: Text
+    query: Text
+    decision_time: AwareDatetime
+    purpose: Purpose = "model_context"
+    top_k: int = Field(default=3, ge=1, le=20)
+    expect_empty: bool = False
+    expected_document_id: Identifier | None = None
+    expected_location_id: Identifier | None = None
+    required_substrings: tuple[Text, ...] = ()
+    expected_exclusion_reason: Text | None = None
+
+    @model_validator(mode="after")
+    def validate_expectation(self) -> "EvaluationCase":
+        if self.expect_empty:
+            if self.expected_document_id or self.expected_location_id or self.required_substrings:
+                raise ValueError("empty-expectation case cannot require hit document or substrings")
+        else:
+            if not self.expected_document_id or not self.expected_location_id:
+                raise ValueError(
+                    "positive case requires expected_document_id and expected_location_id"
+                )
+        return self
+
+
+class EvaluationBenchmark(Record):
+    schema_version: Literal["1.0"] = "1.0"
+    benchmark_id: Identifier
+    catalog_path: Text
+    cases: tuple[EvaluationCase, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_unique_cases(self) -> "EvaluationBenchmark":
+        ids = [c.case_id for c in self.cases]
+        if len(ids) != len(set(ids)):
+            raise ValueError("duplicate evaluation case_id")
+        return self
+
+
+class CaseResult(Record):
+    case_id: Identifier
+    passed: bool
+    top_document_id: str | None = None
+    top_location_id: str | None = None
+    matched_substrings: tuple[str, ...] = ()
+    missing_substrings: tuple[str, ...] = ()
+    reasons: tuple[str, ...] = ()
+
+
+class EvaluationReport(Record):
+    schema_version: Literal["1.0"] = "1.0"
+    benchmark_id: Identifier
+    snapshot_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    status: Literal["passed", "blocked"]
+    total_cases: int = Field(ge=1)
+    passed_cases: int = Field(ge=0)
+    hit_rate: float = Field(ge=0.0, le=1.0)
+    citation_accuracy: float = Field(ge=0.0, le=1.0)
+    numeric_accuracy: float = Field(ge=0.0, le=1.0)
+    temporal_guard_accuracy: float = Field(ge=0.0, le=1.0)
+    cases: tuple[CaseResult, ...]
+    untrusted_data_only: Literal[True] = True
+    historical_backtest_approved: Literal[False] = False
+    trading_approved: Literal[False] = False

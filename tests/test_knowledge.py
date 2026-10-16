@@ -465,3 +465,107 @@ def test_repository_catalog_snapshot_and_search_cli(tmp_path, monkeypatch, capsy
     assert searched["eligible_documents"] == 3
     assert searched["hits"][0]["document_id"] == "project-value"
     assert searched["hits"][0]["untrusted_data_only"] is True
+
+
+def test_principles_evaluation_benchmark_passes_offline(tmp_path, monkeypatch, capsys):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.setenv("AI_TRADER_STATE_DIR", str(tmp_path))
+    eval_args = [
+        "ai-trader",
+        "knowledge",
+        "--root",
+        str(root),
+        "--evaluate-benchmark",
+        str(root / "docs/knowledge/eval-benchmark.json"),
+    ]
+    monkeypatch.setattr(sys, "argv", eval_args)
+    main()
+    report = json.loads(capsys.readouterr().out)
+    assert report["status"] == "passed"
+    assert report["total_cases"] == 8
+    assert report["passed_cases"] == 8
+    assert report["hit_rate"] == 1.0
+    assert report["citation_accuracy"] == 1.0
+    assert report["numeric_accuracy"] == 1.0
+    assert report["temporal_guard_accuracy"] == 1.0
+    assert report["historical_backtest_approved"] is False
+    assert report["trading_approved"] is False
+
+
+def test_evaluation_gate_blocks_on_wrong_location_missing_figure_or_time_leak(
+    source, tmp_path, monkeypatch, capsys
+):
+    from ai_trader.knowledge.index import build_knowledge_snapshot, evaluate_knowledge_benchmark
+    from ai_trader.knowledge.models import EvaluationBenchmark, EvaluationCase
+
+    body = b"# Synthetic\nOperating revenue reached $42,500 million in FY26.\n"
+    (tmp_path / "source.md").write_bytes(body)
+    source.update(
+        content_sha256=hashlib.sha256(body).hexdigest(),
+        rights={
+            **source["rights"],
+            "allowed_uses": ["local_storage", "indexing", "model_context"],
+        },
+    )
+    snap = build_knowledge_snapshot(Catalog(documents=(Document(**source),)), tmp_path)
+
+    bench = EvaluationBenchmark(
+        benchmark_id="failure-check",
+        catalog_path="catalog.json",
+        cases=(
+            EvaluationCase(
+                case_id="wrong-location",
+                description="Wrong expected location",
+                query="Operating revenue 42,500",
+                decision_time=DECISION,
+                expected_document_id="fixture",
+                expected_location_id="other-section",
+            ),
+            EvaluationCase(
+                case_id="wrong-number",
+                description="Missing numeric figure",
+                query="Operating revenue 42,500",
+                decision_time=DECISION,
+                expected_document_id="fixture",
+                expected_location_id="intro",
+                required_substrings=("$99,999",),
+            ),
+            EvaluationCase(
+                case_id="unexpected-hit-on-empty-case",
+                description="Should have been empty but decision_time is after observation",
+                query="Operating revenue 42,500",
+                decision_time=DECISION,
+                expect_empty=True,
+                expected_exclusion_reason="unavailable_at_decision",
+            ),
+        ),
+    )
+    res = evaluate_knowledge_benchmark(bench, snap)
+    assert res.status == "blocked"
+    assert res.passed_cases == 0
+    assert res.cases[0].reasons == ("expected_citation_location_not_found",)
+    assert res.cases[1].reasons == ("missing_required_substring",)
+    assert "unexpected_hits_returned" in res.cases[2].reasons
+
+    bench_path = tmp_path / "bench.json"
+    bench_path.write_text(bench.model_dump_json())
+    cat_path = tmp_path / "catalog.json"
+    cat_path.write_text(Catalog(documents=(Document(**source),)).model_dump_json())
+    monkeypatch.setenv("AI_TRADER_STATE_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "ai-trader",
+            "knowledge",
+            "--root",
+            str(tmp_path),
+            "--catalog",
+            str(cat_path),
+            "--evaluate-benchmark",
+            str(bench_path),
+        ],
+    )
+    with pytest.raises(SystemExit) as blocked:
+        main()
+    assert blocked.value.code == 2

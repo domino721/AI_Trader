@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "public-sec-eval-v1",
+  "catalog_path": "docs/knowledge/public-catalog.json",
+  "cases": [
+    {
+      "case_id": "aapl-10q-net-sales-figures",
+      "description": "Retrieve Apple Q3 FY26 Form 10-Q condensed consolidated statements of operations net sales figures",
+      "query": "Apple condensed consolidated statements of operations net sales products services 78,678 109,417",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 3,
+      "expect_empty": false,
+      "expected_document_id": "aapl-2026-q3-10q",
+      "expected_location_id": "part1-item1",
+      "required_substrings": [
+        "78,678",
+        "30,739",
+        "109,417"
+      ]
+    },
+    {
+      "case_id": "aapl-10q-mda",
+      "description": "Retrieve Apple Form 10-Q Item 2 MD&A forward-looking statements section",
+      "query": "Apple Item 2 Management Discussion and Analysis Quarterly Report Form 10-Q forward-looking statements",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 3,
+      "expect_empty": false,
+      "expected_document_id": "aapl-2026-q3-10q",
+      "expected_location_id": "part1-item2",
+      "required_substrings": [
+        "Quarterly Report on Form 10-Q",
+        "forward-looking statements"
+      ]
+    },
+    {
+      "case_id": "msft-10k-income-statement-revenue",
+      "description": "Retrieve Microsoft FY26 Form 10-K Item 8 income statements product and service revenue figures",
+      "query": "Microsoft Item 8 financial statements income statements revenue product 64,696 267,143",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 3,
+      "expect_empty": false,
+      "expected_document_id": "msft-2026-fy-10k",
+      "expected_location_id": "item-8",
+      "required_substrings": [
+        "64,696",
+        "267,143"
+      ]
+    },
+    {
+      "case_id": "msft-8k-fy27-segments",
+      "description": "Retrieve Microsoft Form 8-K Item 7.01 Regulation FD disclosure on FY27 reportable segments",
+      "query": "Item 7.01 Regulation FD Disclosure FY27 Segments Investor Metrics Agents and Infra Devices and Consumer",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 3,
+      "expect_empty": false,
+      "expected_document_id": "msft-2026-0902-8k",
+      "expected_location_id": "item-7-01",
+      "required_substrings": [
+        "FY27 Segments and Investor Metrics",
+        "Agents and Infra",
+        "Devices and Consumer"
+      ]
+    },
+    {
+      "case_id": "plos-china-market-cap-figures",
+      "description": "Retrieve PLOS ONE introduction on China A-share 12 trillion and bond market 20 trillion figures",
+      "query": "China A-share market capitalization July 2022 12 trillion bond market 20 trillion",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 3,
+      "expect_empty": false,
+      "expected_document_id": "plos-0300781",
+      "expected_location_id": "sec001",
+      "required_substrings": [
+        "12 trillion US dollars",
+        "20 trillion US dollars"
+      ]
+    },
+    {
+      "case_id": "sec-acceptance-does-not-backdate-availability",
+      "description": "Block SEC filings and paper when decision_time is August 2026 (after filing acceptance but before October 2026 first observation)",
+      "query": "Apple 109,417 Microsoft 267,143 FY27 Segments",
+      "decision_time": "2026-09-15T00:00:00+00:00",
+      "purpose": "model_context",
+      "top_k": 5,
+      "expect_empty": true,
+      "expected_exclusion_reason": "unavailable_at_decision"
+    }
+  ]
+}

@@ -14,16 +14,19 @@ from ai_trader.knowledge.catalog import verify_content
 from ai_trader.knowledge.models import (
     CHUNKER_VERSION,
     PARSER_VERSION,
+    CaseResult,
     Catalog,
     Chunk,
     Document,
+    EvaluationBenchmark,
+    EvaluationReport,
     KnowledgeSnapshot,
     Purpose,
     SearchHit,
     SearchReport,
 )
 
-MAX_SECTION_RAW_CHARS = 12_000
+MAX_SECTION_RAW_CHARS = 48_000
 CHUNK_SIZE = 600
 CHUNK_OVERLAP = 100
 
@@ -319,4 +322,109 @@ def search_knowledge(
         eligible_documents=len(eligible_versions),
         excluded_documents=excluded,
         hits=hits,
+    )
+
+
+def load_evaluation_benchmark(path: Path) -> EvaluationBenchmark:
+    return EvaluationBenchmark.model_validate_json(path.read_bytes())
+
+
+def evaluate_knowledge_benchmark(
+    benchmark: EvaluationBenchmark,
+    snapshot: KnowledgeSnapshot,
+) -> EvaluationReport:
+    results: list[CaseResult] = []
+    pos_total = 0
+    doc_hits = 0
+    loc_hits = 0
+    num_total = 0
+    num_hits = 0
+    guard_total = 0
+    guard_hits = 0
+
+    for case in benchmark.cases:
+        report = search_knowledge(
+            snapshot,
+            case.query,
+            case.decision_time,
+            purpose=case.purpose,
+            top_k=case.top_k,
+        )
+        reasons: list[str] = []
+        top_doc = report.hits[0].document_id if report.hits else None
+        top_loc = report.hits[0].location_id if report.hits else None
+        matched_subs: list[str] = []
+        missing_subs: list[str] = []
+
+        if case.expect_empty:
+            guard_total += 1
+            if report.hits:
+                reasons.append("unexpected_hits_returned")
+            if case.expected_exclusion_reason:
+                all_reasons = {
+                    r for doc_reasons in report.excluded_documents.values() for r in doc_reasons
+                }
+                if case.expected_exclusion_reason not in all_reasons:
+                    reasons.append("missing_expected_exclusion_reason")
+            if not reasons:
+                guard_hits += 1
+        else:
+            pos_total += 1
+            matching_hits = [
+                h
+                for h in report.hits
+                if h.document_id == case.expected_document_id
+                and h.location_id == case.expected_location_id
+            ]
+            if any(h.document_id == case.expected_document_id for h in report.hits):
+                doc_hits += 1
+            else:
+                reasons.append("expected_document_not_found")
+            if matching_hits:
+                loc_hits += 1
+            else:
+                reasons.append("expected_citation_location_not_found")
+            combined_text = " ".join(h.text for h in matching_hits)
+            for sub in case.required_substrings:
+                if sub in combined_text:
+                    matched_subs.append(sub)
+                else:
+                    missing_subs.append(sub)
+            if case.required_substrings:
+                num_total += 1
+                if not missing_subs:
+                    num_hits += 1
+                else:
+                    reasons.append("missing_required_substring")
+
+        results.append(
+            CaseResult(
+                case_id=case.case_id,
+                passed=not reasons,
+                top_document_id=top_doc,
+                top_location_id=top_loc,
+                matched_substrings=tuple(matched_subs),
+                missing_substrings=tuple(missing_subs),
+                reasons=tuple(reasons),
+            )
+        )
+
+    passed_cases = sum(1 for r in results if r.passed)
+    hit_rate = round(doc_hits / pos_total, 4) if pos_total else 1.0
+    citation_acc = round(loc_hits / pos_total, 4) if pos_total else 1.0
+    numeric_acc = round(num_hits / num_total, 4) if num_total else 1.0
+    temporal_acc = round(guard_hits / guard_total, 4) if guard_total else 1.0
+    status = "passed" if passed_cases == len(results) else "blocked"
+
+    return EvaluationReport(
+        benchmark_id=benchmark.benchmark_id,
+        snapshot_id=snapshot.snapshot_id,
+        status=status,
+        total_cases=len(results),
+        passed_cases=passed_cases,
+        hit_rate=hit_rate,
+        citation_accuracy=citation_acc,
+        numeric_accuracy=numeric_acc,
+        temporal_guard_accuracy=temporal_acc,
+        cases=tuple(results),
     )

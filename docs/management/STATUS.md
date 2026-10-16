@@ -3,18 +3,21 @@
 - 갱신: 2026-10-16 (한국 시간)
 - 현재 계획: v1.1.0 / CR-0001
 - 설계 기준선: Git `plan-v1.0.0`, 커밋 `ec0b8b9`
-- 이번 진행: **WBS 2.1(문헌·공시 본문·권한·출처 계약) 및 WBS 2.2(파싱·청크·RAG 색인·시점 필터) 완료**. 다음 작업은 WBS 2.3(검색·인용 품질 게이트).
+- 이번 진행: **WBS 2.1·2.2·2.3(단계 1 지식 영역 전체 및 검색·인용 품질 게이트) 완료**. 다음 작업은 WBS 3.1(모델·호출 예산·공급자 어댑터).
 
-## 최신 실적 — 지식 자료 계약 완료 및 스냅샷·RAG 색인 구현 (WBS 2.1–2.2)
+## 최신 실적 — 지식 계약·스냅샷·RAG 색인 및 검색·인용 품질 게이트 통과 (WBS 2.1–2.3 완료)
 
-2026-10-16 로컬 환경에서 원격 `af878d9`를 이어서 작업했습니다. [지식 계약과 스냅샷·색인](../KNOWLEDGE_CONTRACT.md), [검증 근거](KNOWLEDGE_VALIDATION_2026-10-16.md)를 갱신했습니다. WBS는 전체 **32개 중 12개 완료**(0.1–0.2, 1.1–1.8, 2.1–2.2)이며 기준선 v1.1.0은 보존합니다.
+2026-10-16 로컬 환경에서 원격 `af878d9`를 이어서 작업했습니다. [지식 계약·스냅샷·색인·품질 게이트](../KNOWLEDGE_CONTRACT.md), [검증 근거](KNOWLEDGE_VALIDATION_2026-10-16.md)를 갱신했습니다. WBS는 전체 **32개 중 13개 완료**(0.1–0.2, 1.1–1.8, 2.1–2.3)로 **단계 1(데이터·지식)이 모두 종료**되었으며 기준선 v1.1.0은 보존합니다.
 
 - **WBS 2.1 완료**: 로컬 `.env`(Git 제외, 권한 `0600`)에 연락 식별 변수를 연결하고, SEC EDGAR에서 AAPL 10-Q(`0000320193-26-000020`), MSFT 10-K(`0001193125-26-323660`), MSFT 8-K(`0001193125-26-380280`) 실제 primary document 본문(HTML)을 수집해 원문 SHA-256·접수/관측 시각·권한·Item별 고유 인용 위치를 `docs/knowledge/public-catalog.json`에 등록·검증했습니다. 직접 작성한 원칙 3개(`docs/knowledge/catalog.json`, 총 9개 절 위치)와 CC BY 4.0 공개 논문 XML(`plos-0300781`, 3개 절 위치)까지 모두 `status=passed`를 확인했습니다. 외부 원문은 `.local/knowledge/raw/`에만 보관합니다.
 - **WBS 2.2 완료**: `src/ai_trader/knowledge/index.py` 및 CLI(`--build-snapshot`, `--replay-snapshot`, `--query`)를 구현했습니다.
   - 검증된 인용 위치 구간에서 `<script>`·`<style>`·주석·태그를 제거하고 고정 크기(600자, 100자 중첩)로 분할하여 결정론적 `chunk_id`·`snapshot_id`를 생성합니다.
-  - 원칙 카탈로그 스냅샷(`ba4191bfe186cac20fb6b15aff9b85f95eefb3a2f052edf84abc0c085324a5f8`, 3문서 9청크)과 공개 카탈로그 스냅샷(`6c01e8ec6edf096eea97a442f3c0ee9e15827a9b09f12d1685dd12c020b5e340`, 4문서 105청크) 모두 오프라인 `--replay-snapshot`에서 `integrity=passed`, `replay=identical`을 확인했습니다.
+  - 원칙 카탈로그 스냅샷(`ba4191bfe186cac20fb6b15aff9b85f95eefb3a2f052edf84abc0c085324a5f8`, 3문서 9청크)과 공개 카탈로그 스냅샷(`9519c2c50c12e49aaa7e1df17386edc382ee13325d7e693101fe8601aa01b9b8`, 4문서 245청크) 모두 오프라인 `--replay-snapshot`에서 `integrity=passed`, `replay=identical`을 확인했습니다.
   - 질의 시점(`available_at <= decision_time`), 사용 목적(`purpose`), 정정 체인(`supersedes`) 필터링과 문서 지시 격리(`untrusted_data_only=True`, 프롬프트 삽입 의심 문구 `instruction_like=True` 표시 및 비실행)를 검증했습니다.
-- **다음**: 고정 평가 세트에서 검색·인용·수치·시점 정확성을 검증하는 **WBS 2.3 검색·인용 품질 게이트**를 진행합니다.
+- **WBS 2.3 완료**: 고정 평가 세트(`docs/knowledge/eval-benchmark.json` 8건 및 `docs/knowledge/public-eval-benchmark.json` 6건)와 `--evaluate-benchmark` 품질 게이트를 구현했습니다.
+  - 두 평가 세트 모두 `hit_rate=1.0`, `citation_accuracy=1.0`, `numeric_accuracy=1.0`, `temporal_guard_accuracy=1.0` (`status=passed`, 종료 코드 0)을 통과했습니다.
+  - 잘못된 인용 위치·누락된 수치·시점 누수 발생 시 `status=blocked`(종료 코드 2)로 차단됨을 단위 테스트(`tests/test_knowledge.py`, 46개 통과 / 전체 127개 통과)로 검증했습니다.
+- **다음**: 단계 2(AI 토론)의 첫 작업인 **WBS 3.1 모델·호출 예산·공급자 어댑터**로 이동합니다.
 
 ## 이전 실적 — 실제 데이터 게이트 통과
 

@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "principles-eval-v1",
+  "catalog_path": "docs/knowledge/catalog.json",
+  "cases": [
+    {
+      "case_id": "value-cash-flows",
+      "description": "Retrieve value principle on cash-flow inputs and thesis invalidation",
+      "query": "cash flow input assumptions valuation invalidate thesis",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 2,
+      "expect_empty": false,
+      "expected_document_id": "project-value",
+      "expected_location_id": "section-1",
+      "required_substrings": [
+        "Explain the source and units of every cash-flow input",
+        "invalidate the thesis"
+      ]
+    },
+    {
+      "case_id": "value-accounting-etf",
+      "description": "Retrieve value principle on leverage, cash conversion and ETF holdings vs operating company",
+      "query": "leverage cash conversion ETF holdings operating company financial statements",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 2,
+      "expect_empty": false,
+      "expected_document_id": "project-value",
+      "expected_location_id": "section-2",
+      "required_substrings": [
+        "ETF holdings require a different interpretation",
+        "financial statements"
+      ]
+    },
+    {
+      "case_id": "value-time-boundary-2026",
+      "description": "Retrieve value principle on filing public availability vs accounting period and 2026 numeric year",
+      "query": "public availability actual filing version accounting period 2026",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 2,
+      "expect_empty": false,
+      "expected_document_id": "project-value",
+      "expected_location_id": "section-3",
+      "required_substrings": [
+        "not its accounting period",
+        "2026"
+      ]
+    },
+    {
+      "case_id": "momentum-signal-spec",
+      "description": "Retrieve momentum principle on observation window and cross-sectional relative strength",
+      "query": "observation window rebalance schedule cross-sectional relative strength time-series trend",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 2,
+      "expect_empty": false,
+      "expected_document_id": "project-momentum",
+      "expected_location_id": "section-1",
+      "required_substrings": [
+        "cross-sectional relative strength",
+        "time-series trend"
+      ]
+    },
+    {
+      "case_id": "momentum-execution-boundary",
+      "description": "Retrieve momentum principle on execution price invisibility to analysts",
+      "query": "execution price later execution stage visible analyst producing signal",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 2,
+      "expect_empty": false,
+      "expected_document_id": "project-momentum",
+      "expected_location_id": "section-3",
+      "required_substrings": [
+        "execution price belongs to the later execution stage",
+        "must not be visible"
+      ]
+    },
+    {
+      "case_id": "quant-non-independent-vote",
+      "description": "Retrieve quant principle that quantitative role does not create an independent third vote",
+      "query": "quantitative role independent third vote overlapping evidence exposures",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 2,
+      "expect_empty": false,
+      "expected_document_id": "project-quant",
+      "expected_location_id": "section-2",
+      "required_substrings": [
+        "does not create an independent third vote",
+        "overlapping evidence"
+      ]
+    },
+    {
+      "case_id": "quant-abstention-authority",
+      "description": "Retrieve quant principle on abstention and risk/order authority isolation",
+      "query": "survivorship contamination abstention risk order authority",
+      "decision_time": "2026-10-16T23:59:59+09:00",
+      "purpose": "model_context",
+      "top_k": 2,
+      "expect_empty": false,
+      "expected_document_id": "project-quant",
+      "expected_location_id": "section-3",
+      "required_substrings": [
+        "trigger a recorded abstention",
+        "cannot change risk or order authority"
+      ]
+    },
+    {
+      "case_id": "temporal-guard-before-observation",
+      "description": "Block all principles when decision_time precedes first observation",
+      "query": "cash flow valuation momentum signal quantitative",
+      "decision_time": "2026-10-15T23:59:59+00:00",
+      "purpose": "model_context",
+      "top_k": 5,
+      "expect_empty": true,
+      "expected_exclusion_reason": "unavailable_at_decision"
+    }
+  ]
+}
