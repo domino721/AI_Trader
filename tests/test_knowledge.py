@@ -265,6 +265,23 @@ def test_repository_original_catalog_is_reproducible_without_network():
     assert len(result["documents"]) == 3
 
 
+def test_public_catalog_schema_and_sec_filing_provenance_contract():
+    root = Path(__file__).resolve().parents[1]
+    catalog = load_catalog(root / "docs/knowledge/public-catalog.json")
+    assert [doc.document_id for doc in catalog.documents] == [
+        "plos-0300781",
+        "aapl-2026-q3-10q",
+        "msft-2026-fy-10k",
+        "msft-2026-0902-8k",
+    ]
+    sec_docs = [doc for doc in catalog.documents if doc.kind == "sec_filing"]
+    assert [doc.filing.form for doc in sec_docs] == ["10-Q", "10-K", "8-K"]
+    for doc in sec_docs:
+        assert doc.filing.accepted_at < doc.available_at
+    early = check_catalog(catalog, root, datetime(2026, 8, 1, tzinfo=UTC), "indexing")
+    assert all("unavailable_at_decision" in row["reasons"] for row in early["documents"])
+
+
 def test_cli_exit_codes_and_redacted_errors(source, tmp_path, monkeypatch, capsys):
     path = tmp_path / "catalog.json"
     path.write_text(Catalog(documents=(Document(**source),)).model_dump_json())
@@ -293,3 +310,158 @@ def test_cli_exit_codes_and_redacted_errors(source, tmp_path, monkeypatch, capsy
     stderr = capsys.readouterr().err
     assert "ValidationError" in stderr
     assert "should-not-be-printed" not in stderr
+
+
+def test_parse_chunk_and_snapshot_replay_are_deterministic(source, tmp_path):
+    from ai_trader.knowledge.index import (
+        build_knowledge_snapshot,
+        parse_document_chunks,
+        replay_knowledge_snapshot,
+    )
+
+    doc = Document(**source)
+    chunks = parse_document_chunks(doc, tmp_path)
+    assert len(chunks) == 1
+    assert chunks[0].untrusted_data_only is True
+    assert chunks[0].instruction_like is True
+    assert chunks[0].location_id == "intro"
+
+    catalog = Catalog(documents=(doc,))
+    snap1 = build_knowledge_snapshot(catalog, tmp_path, state_dir=tmp_path)
+    snap2 = build_knowledge_snapshot(catalog, tmp_path, state_dir=tmp_path)
+    assert snap1.snapshot_id == snap2.snapshot_id
+    assert snap1.historical_backtest_approved is False
+    assert snap1.trading_approved is False
+
+    replayed = replay_knowledge_snapshot(tmp_path, snap1.snapshot_id, tmp_path)
+    assert replayed["integrity"] == "passed"
+    assert replayed["replay"] == "identical"
+
+
+def test_html_script_stripping_and_non_indexing_rights_rejected(source, tmp_path):
+    from ai_trader.knowledge.index import parse_document_chunks
+
+    html_body = (
+        b"<html><head><style>.x{color:red}</style><script>alert('xss')</script></head>"
+        b'<body><div id="sec1"><h2>Section 1</h2>'
+        b"<p>Operating cash flow rose 12%.</p></div></body></html>"
+    )
+    (tmp_path / "filing.htm").write_bytes(html_body)
+    source.update(
+        content_path="filing.htm",
+        content_sha256=hashlib.sha256(html_body).hexdigest(),
+        media_type="text/html",
+        locations=[{"location_id": "sec1", "label": "Section 1", "marker": 'id="sec1"'}],
+    )
+    chunks = parse_document_chunks(Document(**source), tmp_path)
+    assert len(chunks) == 1
+    assert "alert" not in chunks[0].text
+    assert "color:red" not in chunks[0].text
+    assert "Operating cash flow rose 12%." in chunks[0].text
+    assert chunks[0].instruction_like is False
+
+    source["rights"]["allowed_uses"] = ["local_storage"]
+    with pytest.raises(ValueError, match="indexing"):
+        parse_document_chunks(Document(**source), tmp_path)
+
+
+def test_search_enforces_time_boundary_purpose_and_superseding_chain(source, tmp_path):
+    from ai_trader.knowledge.index import build_knowledge_snapshot, search_knowledge
+
+    body_v1 = b"# Synthetic\nCash flow margin was 15 percent in initial report.\n"
+    body_v2 = b"# Synthetic\nCash flow margin was restated to 11 percent in amended report.\n"
+    (tmp_path / "v1.md").write_bytes(body_v1)
+    (tmp_path / "v2.md").write_bytes(body_v2)
+
+    s1 = dict(
+        source,
+        content_path="v1.md",
+        content_sha256=hashlib.sha256(body_v1).hexdigest(),
+        rights={
+            **source["rights"],
+            "allowed_uses": ["local_storage", "indexing", "model_context"],
+        },
+    )
+    doc_v1 = Document(**s1)
+    s2 = dict(
+        s1,
+        edition="2.0",
+        content_path="v2.md",
+        content_sha256=hashlib.sha256(body_v2).hexdigest(),
+        first_observed_at=DECISION,
+        retrieved_at=DECISION,
+        supersedes=doc_v1.version_id,
+    )
+    doc_v2 = Document(**s2)
+    snap = build_knowledge_snapshot(Catalog(documents=(doc_v1, doc_v2)), tmp_path)
+
+    before_obs = search_knowledge(
+        snap, "cash flow margin", OBSERVED - timedelta(seconds=1), purpose="model_context"
+    )
+    assert before_obs.eligible_documents == 0
+    assert len(before_obs.hits) == 0
+
+    at_obs = search_knowledge(snap, "cash flow margin", OBSERVED, purpose="model_context")
+    assert at_obs.eligible_documents == 1
+    assert len(at_obs.hits) == 1
+    assert at_obs.hits[0].version_id == doc_v1.version_id
+    assert "15 percent" in at_obs.hits[0].text
+
+    at_decision = search_knowledge(snap, "cash flow margin", DECISION, purpose="model_context")
+    assert at_decision.eligible_documents == 1
+    assert len(at_decision.hits) == 1
+    assert at_decision.hits[0].version_id == doc_v2.version_id
+    assert "11 percent" in at_decision.hits[0].text
+
+
+def test_repository_catalog_snapshot_and_search_cli(tmp_path, monkeypatch, capsys):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.setenv("AI_TRADER_STATE_DIR", str(tmp_path))
+    build_args = [
+        "ai-trader",
+        "knowledge",
+        "--catalog",
+        str(root / "docs/knowledge/catalog.json"),
+        "--root",
+        str(root),
+        "--build-snapshot",
+    ]
+    monkeypatch.setattr(sys, "argv", build_args)
+    main()
+    built = json.loads(capsys.readouterr().out)
+    assert built["documents"] == 3
+    assert built["chunks"] == 9
+    assert built["untrusted_data_only"] is True
+
+    replay_args = [
+        "ai-trader",
+        "knowledge",
+        "--root",
+        str(root),
+        "--replay-snapshot",
+        built["snapshot_id"],
+    ]
+    monkeypatch.setattr(sys, "argv", replay_args)
+    main()
+    replayed = json.loads(capsys.readouterr().out)
+    assert replayed["integrity"] == "passed"
+    assert replayed["replay"] == "identical"
+
+    search_args = [
+        "ai-trader",
+        "knowledge",
+        "--snapshot-id",
+        built["snapshot_id"],
+        "--query",
+        "cash flow valuation leverage",
+        "--as-of",
+        "2026-10-16T23:59:59+09:00",
+        "--purpose",
+        "model_context",
+    ]
+    monkeypatch.setattr(sys, "argv", search_args)
+    main()
+    searched = json.loads(capsys.readouterr().out)
+    assert searched["eligible_documents"] == 3
+    assert searched["hits"][0]["document_id"] == "project-value"
+    assert searched["hits"][0]["untrusted_data_only"] is True

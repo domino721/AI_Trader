@@ -1,20 +1,20 @@
-# 지식 자료 계약 — WBS 2.1
+# 지식 자료 계약 및 스냅샷·색인 — WBS 2.1–2.2
 
-2026-10-16, 한국 시간. 현재 계획 v1.1.0의 출처 계약 구현이며 범위·순서·일정 기준선은 변경하지 않습니다. WBS 2.1은 **진행 중**입니다. 실제 SEC 공시 본문의 확보·인용 위치 검증이 남아 WBS 2.2는 아직 착수하지 않습니다.
+2026-10-16, 한국 시간. 현재 계획 v1.1.0의 출처 계약(WBS 2.1)과 파싱·청크·RAG 색인·시점 필터(WBS 2.2) 구현이며 범위·순서·일정 기준선은 변경하지 않습니다. WBS 2.1 및 2.2는 **완료**했으며, 다음 순서는 고정 평가 세트를 통한 검색·인용 품질 게이트(WBS 2.3)입니다.
 
-## 현재 확보한 자료
+## 현재 확보·검증한 자료
 
 | 목록 | 내용 | 실제 검증 | 용도와 한계 |
 | --- | --- | --- | --- |
-| `docs/knowledge/catalog.json` | 프로젝트가 새로 작성한 가치·모멘텀·퀀트 원칙 3개 | 원문 SHA-256, 절 제목, 판본, 권한과 최초 관측 시각 | 원칙·반증·실험 기준. 저서 발췌나 실증 전략이 아님 |
-| `docs/knowledge/public-catalog.json` | Wang·Wang·Zhang (2024), PLoS ONE 19(3): e0300781 | 출판사 XML HTTP 200, 파일 318,832바이트, 본문 `sec001`, 본문 내 CC BY 4.0 고지 | 중국 주식·채권의 교차 자산 방법론 비교. 미국 주식 성과 근거로 사용하지 않음 |
-| 후속 SEC 본문 표본 | 기존 연구 종목 중 AAPL/MSFT의 10-K·10-Q·8-K primary document | **미확보**. 기존 단계의 submissions 메타데이터 성공과 별개 | accession·CIK·form·accepted_at·원문 위치와 실제 본문 해시가 모두 있어야 등록 |
+| `docs/knowledge/catalog.json` | 프로젝트가 새로 작성한 가치·모멘텀·퀀트 원칙 3개 (총 9개 절 위치) | 원문 SHA-256, 절 제목 marker, 판본, 권한과 최초 관측 시각, 스냅샷 9청크 동일 재생 | 원칙·반증·실험 기준. 저서 발췌나 실증 전략이 아님 |
+| `docs/knowledge/public-catalog.json` (논문) | Wang·Wang·Zhang (2024), PLoS ONE 19(3): e0300781 | 출판사 XML HTTP 200, 318,832바이트, 본문 `sec001`–`sec003`, CC BY 4.0 고지 | 중국 주식·채권 교차 자산 방법론 비교. 미국 주식 성과 근거로 사용하지 않음 |
+| `docs/knowledge/public-catalog.json` (SEC 공시 본문) | AAPL 10-Q (`0000320193-26-000020`), MSFT 10-K (`0001193125-26-323660`), MSFT 8-K (`0001193125-26-380280`) | SEC EDGAR primary HTML HTTP 200 (1,018,319 / 8,585,610 / 28,668바이트), SHA-256, Item별 고유 marker 9개, 스냅샷 105청크 동일 재생 | 기업 공시 본문 표본. 접수 시각(`accepted_at`)을 과거 피드 도착 시각으로 소급하지 않으며, 제3자 첨부물(Exhibit 99.1 등)은 제외 |
 
-논문 원문은 `.local/knowledge/raw/plos-0300781.xml`에만 보관하고 Git에는 메타데이터·해시·인용 위치만 넣습니다. 이 파일이 없는 새 checkout에서 공개 논문 목록 검증이 실패하는 것은 정상입니다. 새 다운로드가 달라지면 기존 해시를 덮어쓰지 않고 새 판본으로 기록합니다. 직접 작성한 3개 문서와 검증 테스트는 네트워크 없이 재현됩니다.
+외부 논문 XML과 SEC 공시 HTML 원문은 `.local/knowledge/raw/`에만 보관하고 Git에는 메타데이터·해시·인용 위치만 넣습니다. 이 파일이 없는 새 checkout에서 공개 목록 검증이 실패하는 것은 정상입니다. 새 다운로드가 달라지면 기존 해시를 덮어쓰지 않고 새 판본으로 기록합니다. 직접 작성한 3개 원칙 문서와 검증·스냅샷·검색 테스트는 네트워크 없이 재현됩니다.
 
-현재 로컬 checkout에서 `Settings().sec_user_agent`의 존재 여부만 확인했으며 false였습니다. 이전 클라우드에 설정한 연락 정보가 삭제됐다는 뜻이 아닙니다. 연락 정보를 추정하거나 다시 요구하거나 다른 위치에서 수집하지 않았으며, 해당 설정을 우회한 SEC 자동 수집도 하지 않았습니다. 다음 담당자는 기존에 승인된 설정이 연결된 실행 환경에서 공시 본문 표본을 확보해야 합니다.
+로컬 `.env`(Git 제외, 권한 `0600`)에 사용자 연락 식별 설정을 연결하여 SEC fair-access 정책(초당 1회 이하 직렬 요청)에 따라 primary document를 수집·검증했습니다. 연락 정보는 문서나 출력에 기록하지 않습니다.
 
-## 계약과 판정
+## 계약과 판정 (WBS 2.1)
 
 `src/ai_trader/knowledge/models.py`의 계약은 다음 정보를 고정합니다.
 
@@ -26,15 +26,22 @@
 
 허용 목적은 `local_storage`, `indexing`, `model_context`로 구분합니다. 저장 허용만으로 검색 색인·모델 전달·원문 재배포·모델 훈련을 허용했다고 간주하지 않습니다. 권한 미확인/거부, 허용하지 않은 목적, 체크섬 오류, 누락/중복 인용 위치, 의사결정 이후 자료를 판정에서 제외합니다. URL에 사용자명·비밀번호를 넣을 수 없습니다. 경로 이탈·루트 밖으로 향하는 심볼릭 링크도 거부합니다.
 
-이 검증기는 신뢰된 담당자가 제공한 권한·시점 증거를 검사하는 계약입니다. 라이선스를 자동 판독하거나 문장의 진실성·저작권 범위·자료의 완전성을 인증하지 않습니다. 기록을 임의로 바꾼 행위자를 인증하는 전자서명도 아닙니다. 모델·주문 기능을 호출하지 않고 원문을 데이터로만 취급합니다.
+## 파싱·청크·지식 스냅샷·시점 필터·지시 격리 (WBS 2.2)
+
+`src/ai_trader/knowledge/index.py`는 검증된 문서를 결정론적으로 파싱·청크화하고 스냅샷 재생 및 시점/권한 필터 검색을 수행합니다.
+
+- **파싱 및 청크 고정 (`plain-v1` / `fixed-char-v1`)**: `indexing` 권한이 승인된 문서만 파싱합니다. 각 문서의 검증된 `CitationLocation` marker 구간에서 `<script>`·`<style>`·주석·태그를 제거하고 고정 크기(600자, 100자 중첩)로 분할합니다. 각 `Chunk`는 `version_id`, `location_id`, `chunk_index`, 문자 오프셋, 파서/청커 버전, 텍스트 SHA-256을 결합한 결정론적 `chunk_id`를 갖습니다.
+- **불변 지식 스냅샷과 동일 재생**: 카탈로그와 전체 청크 해시를 결합해 `snapshot_id`를 부여하고 `.local/knowledge/snapshots/{snapshot_id}.json`에 보존합니다. `--replay-snapshot`은 네트워크 없이 로컬 원문에서 스냅샷을 재구성해 전체 문서·청크 일치(`integrity=passed`, `replay=identical`)를 검증합니다.
+- **시점·권한·정정 필터 검색**: `search_knowledge`는 질의 시점에 `available_at <= decision_time`, 요청된 `purpose`(기본 `model_context`) 허용 여부, 그리고 `decision_time` 이전에 도착한 정정본(`supersedes`) 존재 여부를 먼저 필터링합니다. 부적격 문서는 사유와 함께 `excluded_documents`에 기록되고 검색 후보에서 제외됩니다.
+- **문서 지시 격리 (`untrusted_data_only=True`)**: 모든 청크와 검색 결과는 데이터로만 취급되며 어떤 툴 실행·주문·프롬프트 변경 권한도 갖지 않습니다. 본문 내 프롬프트 삽입 의심 패턴(`ignore ... instructions`, `submit a trade`, `system prompt` 등)은 실행하지 않고 `instruction_like=True`로 표시해 후속 검토 게이트에서 식별할 수 있게 합니다.
 
 ## 시점 규칙
 
 기본 `available_at`은 최초 관측 시각입니다. 발행일만 알려진 논문을 그날 자정으로 소급하지 않으며, EDGAR 접수 시각을 실제 배포 시각으로 취급하지 않습니다. 정확한 공개 시각과 증거 URL이 함께 있을 때만 `public_available_at`을 지정할 수 있습니다. 회계 대상일은 이용 가능 시점이 아닙니다.
 
-현재 XML과 원칙 문서는 모두 2026-10-16에 최초 관측했습니다. 논문의 2024년 발행일은 현재 XML 파일의 당시 가용성을 입증하지 않으므로 그 이전 의사결정에는 부적격입니다. 나중 정정이 도착해도 그 이전 시점의 원문 판본은 보존하며 미래 정정으로 과거 근거를 덮어쓰지 않습니다. 이는 지식 계약 검사이며 PIT 데이터·LLM 역사 지식 오염·백테스트·거래 승인은 별도입니다.
+현재 XML·SEC 공시 본문·원칙 문서는 모두 2026-10-16에 최초 관측했습니다. 논문의 2024년 발행일이나 공시의 2026년 7–9월 접수 시각은 현재 파일의 당시 가용성을 입증하지 않으므로 그 이전 의사결정에는 부적격입니다. 나중 정정이 도착해도 그 이전 시점의 원문 판본은 보존하며 미래 정정으로 과거 근거를 덮어쓰지 않습니다. 이는 지식 계약·색인 검사이며 PIT 데이터·LLM 역사 지식 오염·백테스트·거래 승인은 별도입니다.
 
-## 검증 실행
+## 검증·스냅샷·검색 실행
 
 저장소 루트에서 시간대를 포함한 **실제 평가 기준 시각**을 지정합니다.
 
@@ -43,9 +50,11 @@ uv run --frozen ai-trader knowledge --catalog docs/knowledge/catalog.json \
   --as-of 2026-10-16T23:59:59+09:00
 uv run --frozen ai-trader knowledge --catalog docs/knowledge/public-catalog.json \
   --as-of 2026-10-16T23:59:59+09:00
+uv run --frozen ai-trader knowledge --catalog docs/knowledge/catalog.json --build-snapshot
+uv run --frozen ai-trader knowledge --replay-snapshot <snapshot_id>
+uv run --frozen ai-trader knowledge --snapshot-id <snapshot_id> \
+  --query "cash flow valuation leverage" --as-of 2026-10-16T23:59:59+09:00 --purpose model_context
 ```
-
-이 예시 시각은 당일 자료의 이용 가능 여부를 검사하는 고정 기준이며 그 시각에 실제 연구나 거래를 했다는 뜻이 아닙니다. `--root` 기본값은 현재 작업 폴더, `--purpose` 기본값은 `indexing`입니다. JSON 판정은 문서별 버전·제외 이유를 포함합니다. 종료 0은 모든 항목 적격, 2는 하나 이상 부적격, 1은 잘못된 목록/실행 오류입니다. 원문이나 비밀 입력이 포함된 예외 메시지를 출력하지 않습니다. 파싱·청크·RAG 색인·모델 연결은 아직 없습니다.
 
 ## 외부 근거 — 확인일 2026-10-16
 
@@ -53,8 +62,7 @@ uv run --frozen ai-trader knowledge --catalog docs/knowledge/public-catalog.json
 - [SEC 재사용 FAQ](https://www.sec.gov/files/about/webmaster-faq.htm)와 [배포 정책](https://www.sec.gov/about/privacy-information#dissemination): 공시 텍스트와 예외 자료를 구분하는 출처 검토 근거로만 사용합니다. 접근 가능하다는 이유만으로 임의 첨부물·그림·개인정보까지 일괄 승인하지 않습니다.
 - [SEC 개발자 안내](https://www.sec.gov/about/developer-resources), [접수와 웹 공개 사이 지연 안내](https://www.sec.gov/files/about/webmaster-faq.htm): 접수 시각만으로 실제 전달 시각을 인증하지 않습니다. 자동 수집에는 기존 프로젝트의 식별 정보·속도 제한을 유지합니다.
 
-## WBS 2.1의 남은 완료 조건
+## 다음 단계 (WBS 2.3)
 
-1. 기존 SEC 설정이 연결된 환경에서 primary filing 본문 표본을 확보하고, 개인정보·계약 첨부물 없이 필요한 구간·권한·원본 해시·판본·실제 인용 위치를 검증.
-2. 실제 메타데이터/본문을 계약에 등록하고 정상/미래/정정 판정 결과를 증거로 기록.
-3. 위 조건을 확인한 뒤에만 WBS 2.1을 완료하고 2.2의 파싱·청크·시점 필터와 고정 지식 스냅샷으로 이동.
+고정된 검색·인용 평가 세트를 구성하여 검색 적중률, 인용 위치 일치, 수치 보존, 시점 경계 위반 차단, 프롬프트 삽입 격리를 정량 점검하는 **WBS 2.3 검색·인용 품질 게이트**를 수행합니다.
+

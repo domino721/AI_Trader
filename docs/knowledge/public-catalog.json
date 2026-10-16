@@ -36,6 +36,16 @@
           "location_id": "sec001",
           "label": "1. Introduction",
           "marker": "id=\"sec001\""
+        },
+        {
+          "location_id": "sec002",
+          "label": "2. Literature review and theoretical analysis",
+          "marker": "id=\"sec002\""
+        },
+        {
+          "location_id": "sec003",
+          "label": "3. Methodology",
+          "marker": "id=\"sec003\""
         }
       ],
       "limitations": [
@@ -45,6 +55,183 @@
         "Article metadata is not a validation of its findings."
       ],
       "retrieval_url": "https://journals.plos.org/plosone/article/file?id=10.1371%2Fjournal.pone.0300781&type=manuscript"
+    },
+    {
+      "document_id": "aapl-2026-q3-10q",
+      "kind": "sec_filing",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+      "retrieval_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+      "title": "Apple Inc. Form 10-Q for the quarterly period ended June 27, 2026",
+      "authors": [
+        "Apple Inc."
+      ],
+      "edition": "SEC EDGAR primary document 0000320193-26-000020 retrieved 2026-10-16",
+      "published_on": "2026-07-31",
+      "first_observed_at": "2026-10-16T05:37:11.825649+00:00",
+      "retrieved_at": "2026-10-16T05:37:12.654206+00:00",
+      "content_path": ".local/knowledge/raw/aapl-2026-q3-10q.htm",
+      "content_sha256": "40c9a3cbbb8eadfafd4e7fdb9e066e574f06698f259c76930d0aad63d431fda0",
+      "media_type": "text/html",
+      "rights": {
+        "status": "approved",
+        "license_name": "SEC EDGAR public disclosure reuse policy",
+        "evidence_url": "https://www.sec.gov/files/about/webmaster-faq.htm",
+        "checked_at": "2026-10-16T05:37:12.654206+00:00",
+        "allowed_uses": [
+          "local_storage",
+          "indexing",
+          "model_context"
+        ],
+        "attribution": "Apple Inc., Form 10-Q (0000320193-26-000020), SEC EDGAR public filing.",
+        "conditions": "Primary disclosure text only; do not redistribute raw filing bytes in Git, do not claim SEC endorsement, and exclude third-party exhibits or personal data."
+      },
+      "locations": [
+        {
+          "location_id": "part1-item1",
+          "label": "Part I, Item 1. Financial Statements",
+          "marker": "id=\"ib65f44d2415e4f40854b44fa987f6c2a_13\""
+        },
+        {
+          "location_id": "part1-item2",
+          "label": "Part I, Item 2. Management's Discussion and Analysis",
+          "marker": "id=\"ib65f44d2415e4f40854b44fa987f6c2a_67\""
+        },
+        {
+          "location_id": "part2-item1a",
+          "label": "Part II, Item 1A. Risk Factors",
+          "marker": "id=\"ib65f44d2415e4f40854b44fa987f6c2a_160\""
+        }
+      ],
+      "limitations": [
+        "EDGAR acceptance timestamp does not prove historical feed arrival time; conservative availability is first observation in October 2026.",
+        "Report date (2026-06-27) is the fiscal period end, not when the filing became available to investors.",
+        "Primary filing HTML only; exhibits and full XBRL instance semantics are not certified here."
+      ],
+      "filing": {
+        "cik": "0000320193",
+        "accession": "0000320193-26-000020",
+        "form": "10-Q",
+        "accepted_at": "2026-07-31T14:01:02+00:00",
+        "report_date": "2026-06-27"
+      }
+    },
+    {
+      "document_id": "msft-2026-fy-10k",
+      "kind": "sec_filing",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm",
+      "retrieval_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm",
+      "title": "Microsoft Corporation Form 10-K for the fiscal year ended June 30, 2026",
+      "authors": [
+        "Microsoft Corporation"
+      ],
+      "edition": "SEC EDGAR primary document 0001193125-26-323660 retrieved 2026-10-16",
+      "published_on": "2026-07-29",
+      "first_observed_at": "2026-10-16T05:37:13.659081+00:00",
+      "retrieved_at": "2026-10-16T05:37:13.985339+00:00",
+      "content_path": ".local/knowledge/raw/msft-2026-fy-10k.htm",
+      "content_sha256": "4c10956124d938070271ae73162827ed6941e11b61e1fe896a9d61a11fad6dd8",
+      "media_type": "text/html",
+      "rights": {
+        "status": "approved",
+        "license_name": "SEC EDGAR public disclosure reuse policy",
+        "evidence_url": "https://www.sec.gov/files/about/webmaster-faq.htm",
+        "checked_at": "2026-10-16T05:37:13.985339+00:00",
+        "allowed_uses": [
+          "local_storage",
+          "indexing",
+          "model_context"
+        ],
+        "attribution": "Microsoft Corporation, Form 10-K (0001193125-26-323660), SEC EDGAR public filing.",
+        "conditions": "Primary disclosure text only; do not redistribute raw filing bytes in Git, do not claim SEC endorsement, and exclude third-party exhibits or personal data."
+      },
+      "locations": [
+        {
+          "location_id": "item-1",
+          "label": "Part I, Item 1. Business",
+          "marker": "id=\"item_1_business\""
+        },
+        {
+          "location_id": "item-1a",
+          "label": "Part I, Item 1A. Risk Factors",
+          "marker": "id=\"item_1a_risk_factors\""
+        },
+        {
+          "location_id": "item-7",
+          "label": "Part II, Item 7. Management's Discussion and Analysis",
+          "marker": "id=\"item_7_managements_discussion_analysis_f\""
+        },
+        {
+          "location_id": "item-8",
+          "label": "Part II, Item 8. Financial Statements and Supplementary Data",
+          "marker": "id=\"item_8_financial_statements_and_supplem\""
+        }
+      ],
+      "limitations": [
+        "EDGAR acceptance timestamp does not prove historical feed arrival time; conservative availability is first observation in October 2026.",
+        "Report date (2026-06-30) is the fiscal period end, not when the filing became available to investors.",
+        "Primary filing HTML only; exhibits and full XBRL instance semantics are not certified here."
+      ],
+      "filing": {
+        "cik": "0000789019",
+        "accession": "0001193125-26-323660",
+        "form": "10-K",
+        "accepted_at": "2026-07-30T00:08:01+00:00",
+        "report_date": "2026-06-30"
+      }
+    },
+    {
+      "document_id": "msft-2026-0902-8k",
+      "kind": "sec_filing",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526380280/d291965d8k.htm",
+      "retrieval_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526380280/d291965d8k.htm",
+      "title": "Microsoft Corporation Form 8-K dated September 2, 2026 (Item 7.01 / Item 9.01)",
+      "authors": [
+        "Microsoft Corporation"
+      ],
+      "edition": "SEC EDGAR primary document 0001193125-26-380280 retrieved 2026-10-16",
+      "published_on": "2026-09-02",
+      "first_observed_at": "2026-10-16T05:37:14.998517+00:00",
+      "retrieved_at": "2026-10-16T05:37:15.113277+00:00",
+      "content_path": ".local/knowledge/raw/msft-2026-0902-8k.htm",
+      "content_sha256": "4878b564389f1b17e3842212751d42b2920dbd308fa069ef3ca2655934f964cb",
+      "media_type": "text/html",
+      "rights": {
+        "status": "approved",
+        "license_name": "SEC EDGAR public disclosure reuse policy",
+        "evidence_url": "https://www.sec.gov/files/about/webmaster-faq.htm",
+        "checked_at": "2026-10-16T05:37:15.113277+00:00",
+        "allowed_uses": [
+          "local_storage",
+          "indexing",
+          "model_context"
+        ],
+        "attribution": "Microsoft Corporation, Form 8-K (0001193125-26-380280), SEC EDGAR public filing.",
+        "conditions": "Primary disclosure text only; do not redistribute raw filing bytes in Git, do not claim SEC endorsement, and exclude third-party exhibits or personal data."
+      },
+      "locations": [
+        {
+          "location_id": "item-7-01",
+          "label": "Item 7.01. Regulation FD Disclosure",
+          "marker": "Item&#8201;7.01. Regulation FD Disclosure"
+        },
+        {
+          "location_id": "item-9-01",
+          "label": "Item 9.01. Financial Statements and Exhibits",
+          "marker": "Item&#8201;9.01. Financial Statements and Exhibits"
+        }
+      ],
+      "limitations": [
+        "EDGAR acceptance timestamp does not prove historical feed arrival time; conservative availability is first observation in October 2026.",
+        "Furnished Exhibit 99.1 is excluded; only primary Form 8-K disclosure text is verified.",
+        "Report date (2026-09-02) is the event date, not when the filing was observed."
+      ],
+      "filing": {
+        "cik": "0000789019",
+        "accession": "0001193125-26-380280",
+        "form": "8-K",
+        "accepted_at": "2026-09-03T00:30:24+00:00",
+        "report_date": "2026-09-02"
+      }
     }
   ]
 }

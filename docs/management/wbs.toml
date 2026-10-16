@@ -141,9 +141,9 @@ depends_on = ["1.8"]
 baseline_start = 14
 duration = 3
 acceptance = "자료 목록·이용 조건·시점·판본·인용 위치 확보"
-status = "in_progress"
-evidence = ["docs/KNOWLEDGE_CONTRACT.md", "tests/test_knowledge.py", "docs/knowledge/catalog.json", "docs/knowledge/public-catalog.json"]
-blocker = "계약·4개 자료 검증 완료. 실제 SEC 본문·위치는 기존 연락 설정이 연결된 환경에서 확보 대기. WBS 2.2 미착수."
+status = "done"
+actual_finish = "2026-10-16"
+evidence = ["docs/KNOWLEDGE_CONTRACT.md", "docs/management/KNOWLEDGE_VALIDATION_2026-10-16.md", "tests/test_knowledge.py", "docs/knowledge/catalog.json", "docs/knowledge/public-catalog.json"]
 
 [[tasks]]
 id = "2.2"
@@ -154,7 +154,10 @@ depends_on = ["2.1"]
 baseline_start = 17
 duration = 4
 acceptance = "같은 지식 스냅샷 재생·시점 필터·문서 지시 격리"
-status = "not_started"
+status = "done"
+actual_finish = "2026-10-16"
+evidence = ["src/ai_trader/knowledge/index.py", "docs/KNOWLEDGE_CONTRACT.md", "docs/management/KNOWLEDGE_VALIDATION_2026-10-16.md", "tests/test_knowledge.py"]
+
 
 [[tasks]]
 id = "2.3"

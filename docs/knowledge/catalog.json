@@ -34,6 +34,16 @@
           "location_id": "section-1",
           "label": "Cash flows and assumptions",
           "marker": "## Cash flows and assumptions"
+        },
+        {
+          "location_id": "section-2",
+          "label": "Accounting and downside",
+          "marker": "## Accounting and downside"
+        },
+        {
+          "location_id": "section-3",
+          "label": "Time boundary",
+          "marker": "## Time boundary"
         }
       ],
       "limitations": [
@@ -76,6 +86,16 @@
           "location_id": "section-1",
           "label": "Signal specification",
           "marker": "## Signal specification"
+        },
+        {
+          "location_id": "section-2",
+          "label": "Costs and reversals",
+          "marker": "## Costs and reversals"
+        },
+        {
+          "location_id": "section-3",
+          "label": "Decision boundary",
+          "marker": "## Decision boundary"
         }
       ],
       "limitations": [
@@ -118,6 +138,16 @@
           "location_id": "section-1",
           "label": "Experiment specification",
           "marker": "## Experiment specification"
+        },
+        {
+          "location_id": "section-2",
+          "label": "Dependence and evidence",
+          "marker": "## Dependence and evidence"
+        },
+        {
+          "location_id": "section-3",
+          "label": "Limits and abstention",
+          "marker": "## Limits and abstention"
         }
       ],
       "limitations": [

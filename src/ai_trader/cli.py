@@ -6,6 +6,12 @@ from pathlib import Path
 from ai_trader.data.calendar import default_range
 from ai_trader.data.pipeline import collect, replay, summary
 from ai_trader.knowledge.catalog import check_catalog, load_catalog
+from ai_trader.knowledge.index import (
+    build_knowledge_snapshot,
+    load_knowledge_snapshot,
+    replay_knowledge_snapshot,
+    search_knowledge,
+)
 from ai_trader.service import run_demo
 from ai_trader.settings import Settings
 
@@ -25,16 +31,73 @@ def main() -> None:
     gather.add_argument("--refresh", action="store_true")
     verify = actions.add_parser("replay")
     verify.add_argument("snapshot_id")
-    knowledge = commands.add_parser("knowledge", help="verify local document provenance")
-    knowledge.add_argument("--catalog", type=Path, required=True)
+    knowledge = commands.add_parser("knowledge", help="verify, index, replay and search knowledge")
+    knowledge.add_argument("--catalog", type=Path)
     knowledge.add_argument("--root", type=Path, default=Path("."))
-    knowledge.add_argument("--as-of", type=datetime.fromisoformat, required=True)
+    knowledge.add_argument("--as-of", type=datetime.fromisoformat)
     knowledge.add_argument(
         "--purpose", choices=("local_storage", "indexing", "model_context"), default="indexing"
     )
+    knowledge.add_argument("--build-snapshot", action="store_true")
+    knowledge.add_argument("--replay-snapshot")
+    knowledge.add_argument("--snapshot-id")
+    knowledge.add_argument("--query")
+    knowledge.add_argument("--top-k", type=int, default=5)
     args = parser.parse_args()
     if args.command == "knowledge":
+        settings = Settings()
         try:
+            if args.replay_snapshot:
+                result = replay_knowledge_snapshot(
+                    settings.state_dir, args.replay_snapshot, args.root
+                )
+                print(json.dumps(result, indent=2))
+                if result["integrity"] != "passed":
+                    raise SystemExit(2)
+                return
+            if args.build_snapshot:
+                if args.catalog is None:
+                    raise ValueError("catalog is required for snapshot build")
+                snap = build_knowledge_snapshot(
+                    load_catalog(args.catalog), args.root, settings.state_dir
+                )
+                print(
+                    json.dumps(
+                        {
+                            "snapshot_id": snap.snapshot_id,
+                            "catalog_sha256": snap.catalog_sha256,
+                            "documents": len(snap.documents),
+                            "chunks": len(snap.chunks),
+                            "untrusted_data_only": snap.untrusted_data_only,
+                            "historical_backtest_approved": snap.historical_backtest_approved,
+                            "trading_approved": snap.trading_approved,
+                        },
+                        indent=2,
+                    )
+                )
+                return
+            if args.query is not None:
+                if args.as_of is None:
+                    raise ValueError("as-of is required for knowledge search")
+                if args.snapshot_id:
+                    snap = load_knowledge_snapshot(settings.state_dir, args.snapshot_id)
+                elif args.catalog:
+                    snap = build_knowledge_snapshot(
+                        load_catalog(args.catalog), args.root, settings.state_dir
+                    )
+                else:
+                    raise ValueError("snapshot-id or catalog is required for search")
+                report = search_knowledge(
+                    snap,
+                    args.query,
+                    args.as_of,
+                    purpose=args.purpose,
+                    top_k=args.top_k,
+                )
+                print(report.model_dump_json(indent=2))
+                return
+            if args.catalog is None or args.as_of is None:
+                raise ValueError("catalog and as-of are required for verification")
             result = check_catalog(load_catalog(args.catalog), args.root, args.as_of, args.purpose)
         except (OSError, ValueError) as error:
             parser.exit(1, f"Knowledge operation failed: {type(error).__name__}\n")

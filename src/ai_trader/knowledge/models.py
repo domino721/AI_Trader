@@ -169,3 +169,85 @@ class Catalog(Record):
                     raise ValueError("multiple versions require an explicit correction chain")
                 roots.add(document.document_id)
         return self
+
+
+PARSER_VERSION = "plain-v1"
+CHUNKER_VERSION = "fixed-char-v1"
+
+
+class Chunk(Record):
+    chunk_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    document_id: Identifier
+    version_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    kind: Literal["original_principle", "paper", "sec_filing"]
+    title: Text
+    edition: Text
+    source_url: SourceUrl
+    available_at: AwareDatetime
+    allowed_uses: tuple[Purpose, ...] = Field(min_length=1)
+    attribution: Text
+    location_id: Identifier
+    location_label: Text
+    chunk_index: int = Field(ge=0)
+    char_start: int = Field(ge=0)
+    char_end: int = Field(gt=0)
+    parser_version: Literal["plain-v1"] = PARSER_VERSION
+    chunker_version: Literal["fixed-char-v1"] = CHUNKER_VERSION
+    text: Text
+    text_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    untrusted_data_only: Literal[True] = True
+    instruction_like: bool = False
+
+    @model_validator(mode="after")
+    def validate_chunk(self) -> "Chunk":
+        if self.char_end <= self.char_start:
+            raise ValueError("chunk end must follow start")
+        if hashlib.sha256(self.text.encode("utf-8")).hexdigest() != self.text_sha256:
+            raise ValueError("chunk text checksum mismatch")
+        return self
+
+
+class KnowledgeSnapshot(Record):
+    schema_version: Literal["1.0"] = "1.0"
+    snapshot_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    catalog_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    parser_version: Literal["plain-v1"] = PARSER_VERSION
+    chunker_version: Literal["fixed-char-v1"] = CHUNKER_VERSION
+    documents: tuple[Document, ...] = Field(min_length=1)
+    chunks: tuple[Chunk, ...] = Field(min_length=1)
+    untrusted_data_only: Literal[True] = True
+    historical_backtest_approved: Literal[False] = False
+    trading_approved: Literal[False] = False
+
+
+class SearchHit(Record):
+    chunk_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    document_id: Identifier
+    version_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    title: Text
+    edition: Text
+    source_url: SourceUrl
+    available_at: AwareDatetime
+    attribution: Text
+    location_id: Identifier
+    location_label: Text
+    chunk_index: int = Field(ge=0)
+    score: float = Field(gt=0)
+    text: Text
+    text_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    untrusted_data_only: Literal[True] = True
+    instruction_like: bool = False
+
+
+class SearchReport(Record):
+    schema_version: Literal["1.0"] = "1.0"
+    snapshot_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    query: Text
+    decision_time: AwareDatetime
+    purpose: Purpose
+    eligible_documents: int = Field(ge=0)
+    excluded_documents: dict[str, tuple[str, ...]]
+    hits: tuple[SearchHit, ...]
+    untrusted_data_only: Literal[True] = True
+    historical_backtest_approved: Literal[False] = False
+    trading_approved: Literal[False] = False

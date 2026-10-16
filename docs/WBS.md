@@ -6,7 +6,7 @@
 
 D+n은 승인된 일정 기준점 이후 계획 작업일입니다. 1인 개발 순차 배치를 가정한 초안 추정이며 달력 마감일·자동 작업 예약이 아닙니다. 관찰 기간·접근권한·예산에 따라 달라지는 예측은 아래 차단 사유에 기록하고, 기준 일정 변경은 CR과 새 버전으로 남깁니다.
 
-전체 32개 작업 중 10개 완료. 게이트가 통과하기 전에는 해당 단계 완료나 다음 단계 운용 준비를 주장하지 않습니다.
+전체 32개 작업 중 12개 완료. 게이트가 통과하기 전에는 해당 단계 완료나 다음 단계 운용 준비를 주장하지 않습니다.
 
 | WBS | 단계 / 작업 | 담당 기능 | 선행 작업 | 기준 일정 / 예상 작업일 | 상태 | 실적 완료 | 근거 / 차단 사유 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -20,8 +20,8 @@ D+n은 승인된 일정 기준점 이후 계획 작업일입니다. 1인 개발 
 | 1.6 | 1/데이터 / 실제 가격·기업행위 연결 검증 | 데이터 | 1.5 | D+11–12 / 1일 | 완료 | 2026-10-15 | [DATA_VALIDATION_2026-10-15.md](../docs/management/DATA_VALIDATION_2026-10-15.md), [STATUS.md](../docs/management/STATUS.md) |
 | 1.7 | 1/데이터 / 실제 SEC 공시 연결 검증 | 데이터 | 1.6 | D+12–13 / 1일 | 완료 | 2026-10-15 | [DATA_VALIDATION_2026-10-15.md](../docs/management/DATA_VALIDATION_2026-10-15.md), [STATUS.md](../docs/management/STATUS.md) |
 | 1.8 | 1/데이터 / 데이터 MVP 종료 게이트 | 검수 | 1.7 | D+13–14 / 1일 | 완료 | 2026-10-15 | [DATA_VALIDATION_2026-10-15.md](../docs/management/DATA_VALIDATION_2026-10-15.md), [STATUS.md](../docs/management/STATUS.md) |
-| 2.1 | 1/지식 / 문헌·공시 본문·권한·출처 계약 | 리서치 | 1.8 | D+14–17 / 3일 | 진행 | — | [KNOWLEDGE_CONTRACT.md](../docs/KNOWLEDGE_CONTRACT.md), [test_knowledge.py](../tests/test_knowledge.py), [catalog.json](../docs/knowledge/catalog.json), [public-catalog.json](../docs/knowledge/public-catalog.json); 계약·4개 자료 검증 완료. 실제 SEC 본문·위치는 기존 연락 설정이 연결된 환경에서 확보 대기. WBS 2.2 미착수. |
-| 2.2 | 1/지식 / 파싱·청크·RAG 색인·시점 필터 | 개발 | 2.1 | D+17–21 / 4일 | 미착수 | — |  |
+| 2.1 | 1/지식 / 문헌·공시 본문·권한·출처 계약 | 리서치 | 1.8 | D+14–17 / 3일 | 완료 | 2026-10-16 | [KNOWLEDGE_CONTRACT.md](../docs/KNOWLEDGE_CONTRACT.md), [KNOWLEDGE_VALIDATION_2026-10-16.md](../docs/management/KNOWLEDGE_VALIDATION_2026-10-16.md), [test_knowledge.py](../tests/test_knowledge.py), [catalog.json](../docs/knowledge/catalog.json), [public-catalog.json](../docs/knowledge/public-catalog.json) |
+| 2.2 | 1/지식 / 파싱·청크·RAG 색인·시점 필터 | 개발 | 2.1 | D+17–21 / 4일 | 완료 | 2026-10-16 | [index.py](../src/ai_trader/knowledge/index.py), [KNOWLEDGE_CONTRACT.md](../docs/KNOWLEDGE_CONTRACT.md), [KNOWLEDGE_VALIDATION_2026-10-16.md](../docs/management/KNOWLEDGE_VALIDATION_2026-10-16.md), [test_knowledge.py](../tests/test_knowledge.py) |
 | 2.3 | 1/지식 / 검색·인용 품질 게이트 | 검수 | 2.2 | D+21–23 / 2일 | 미착수 | — |  |
 | 3.1 | 2/AI / 모델·호출 예산·공급자 어댑터 | 개발 | 2.3 | D+23–25 / 2일 | 미착수 | — |  |
 | 3.2 | 2/AI / 철학별 분석·공식 이벤트 해석 | 리서치 | 3.1 | D+25–29 / 4일 | 미착수 | — |  |
