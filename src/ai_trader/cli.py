@@ -1,6 +1,8 @@
 import argparse
 import json
+import sqlite3
 from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 
 from ai_trader.data.calendar import default_range
@@ -24,6 +26,8 @@ def main() -> None:
     demo = commands.add_parser("demo", help="run the synthetic decision pipeline")
     demo.add_argument("--request-id", default="cli-demo-v1")
     commands.add_parser("doctor", help="check the installed research environment")
+    model_smoke = commands.add_parser("llm-smoke", help="test offline fixture invocation only")
+    model_smoke.add_argument("--request-id", default="offline-smoke-v1")
     data = commands.add_parser("data", help="collect, inspect and replay research data")
     actions = data.add_subparsers(dest="data_action", required=True)
     gather = actions.add_parser("collect")
@@ -47,6 +51,28 @@ def main() -> None:
     knowledge.add_argument("--top-k", type=int, default=5)
     knowledge.add_argument("--evaluate-benchmark", type=Path)
     args = parser.parse_args()
+    if args.command == "llm-smoke":
+        from ai_trader.llm.fixture import fixture_request
+        from ai_trader.llm.models import InvocationPolicy
+        from ai_trader.llm.provider import FixtureProvider
+        from ai_trader.llm.runtime import invoke
+
+        try:
+            policy = InvocationPolicy(
+                enabled=True,
+                monthly_call_limit=3,
+                monthly_reservation_limit_usd=Decimal("0.03"),
+                attempt_reservation_usd=Decimal("0.01"),
+            )
+            result = invoke(
+                fixture_request(args.request_id), policy, FixtureProvider(), Settings().state_dir
+            )
+        except (OSError, ValueError, sqlite3.Error) as error:
+            parser.exit(1, f"Offline model operation failed: {type(error).__name__}\n")
+        print(json.dumps(result.summary(), indent=2))
+        if result.status != "completed":
+            raise SystemExit(2)
+        return
     if args.command == "knowledge":
         settings = Settings()
         try:

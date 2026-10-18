@@ -1,6 +1,6 @@
 plan_version = "1.1.0"
 baseline_date = "2026-10-15"
-updated_on = "2026-10-16"
+updated_on = "2026-10-17"
 
 [[tasks]]
 id = "0.1"
@@ -182,7 +182,9 @@ depends_on = ["2.3"]
 baseline_start = 23
 duration = 2
 acceptance = "모델·비용 결정·시간 초과·재시도·응답 보존"
-status = "not_started"
+status = "in_progress"
+evidence = ["docs/LLM_FOUNDATION.md", "tests/test_llm.py", "src/ai_trader/llm/runtime.py", "docs/management/LLM_VALIDATION_2026-10-17.md"]
+blocker = "사용자 선택: 공급자·모델·월 예산 미정, 실제 호출 없이 기반 구현. 실제 공급자 연결·비용/시간 초과 검증은 추후. 3.2 미착수."
 
 [[tasks]]
 id = "3.2"

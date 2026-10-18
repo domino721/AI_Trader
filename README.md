@@ -64,3 +64,7 @@ Python/uv + FastAPI/Pydantic + NumPy/pandas/DuckDB + SQLite + pytest/Ruff를 사
 
 다음 개발 목표는 공개 자료의 출처·시점 관리와 검색, 실제 LLM의 구조화된 분석·반론, 기준 전략과 비교할 시점 일관성 있는 백테스트입니다. [단계별 완료 조건](docs/PROJECT_PLAN.md)을 따릅니다.
 
+
+## 오프라인 모델 호출 기반
+
+공급자·모델·월 예산은 아직 미정입니다. [WBS 3.1 기반](docs/LLM_FOUNDATION.md)은 실제 모델 호출 없이 중복 실행·합성 예약 한도·실패 처리·응답 보존을 검증합니다. `uv run --frozen ai-trader llm-smoke`는 메모리 안의 모의 응답만 사용하며 외부 비용이 발생하지 않습니다. 실제 AI 분석·토론·주문에는 연결하지 않았습니다.

@@ -1,6 +1,6 @@
 # WBS 진행 현황
 
-계획 버전 **1.1.0** · 기준일 2026-10-15 (한국 시간) · 실적 갱신 2026-10-16
+계획 버전 **1.1.0** · 기준일 2026-10-15 (한국 시간) · 실적 갱신 2026-10-17
 
 이 파일은 `docs/management/wbs.toml`에서 생성합니다. `uv run --frozen python scripts/project_status.py --write`로 갱신하고 Git에 함께 커밋합니다.
 
@@ -23,7 +23,7 @@ D+n은 승인된 일정 기준점 이후 계획 작업일입니다. 1인 개발 
 | 2.1 | 1/지식 / 문헌·공시 본문·권한·출처 계약 | 리서치 | 1.8 | D+14–17 / 3일 | 완료 | 2026-10-16 | [KNOWLEDGE_CONTRACT.md](../docs/KNOWLEDGE_CONTRACT.md), [KNOWLEDGE_VALIDATION_2026-10-16.md](../docs/management/KNOWLEDGE_VALIDATION_2026-10-16.md), [test_knowledge.py](../tests/test_knowledge.py), [catalog.json](../docs/knowledge/catalog.json), [public-catalog.json](../docs/knowledge/public-catalog.json) |
 | 2.2 | 1/지식 / 파싱·청크·RAG 색인·시점 필터 | 개발 | 2.1 | D+17–21 / 4일 | 완료 | 2026-10-16 | [index.py](../src/ai_trader/knowledge/index.py), [KNOWLEDGE_CONTRACT.md](../docs/KNOWLEDGE_CONTRACT.md), [KNOWLEDGE_VALIDATION_2026-10-16.md](../docs/management/KNOWLEDGE_VALIDATION_2026-10-16.md), [test_knowledge.py](../tests/test_knowledge.py) |
 | 2.3 | 1/지식 / 검색·인용 품질 게이트 | 검수 | 2.2 | D+21–23 / 2일 | 완료 | 2026-10-16 | [eval-benchmark.json](../docs/knowledge/eval-benchmark.json), [public-eval-benchmark.json](../docs/knowledge/public-eval-benchmark.json), [KNOWLEDGE_CONTRACT.md](../docs/KNOWLEDGE_CONTRACT.md), [KNOWLEDGE_VALIDATION_2026-10-16.md](../docs/management/KNOWLEDGE_VALIDATION_2026-10-16.md), [test_knowledge.py](../tests/test_knowledge.py) |
-| 3.1 | 2/AI / 모델·호출 예산·공급자 어댑터 | 개발 | 2.3 | D+23–25 / 2일 | 미착수 | — |  |
+| 3.1 | 2/AI / 모델·호출 예산·공급자 어댑터 | 개발 | 2.3 | D+23–25 / 2일 | 진행 | — | [LLM_FOUNDATION.md](../docs/LLM_FOUNDATION.md), [test_llm.py](../tests/test_llm.py), [runtime.py](../src/ai_trader/llm/runtime.py), [LLM_VALIDATION_2026-10-17.md](../docs/management/LLM_VALIDATION_2026-10-17.md); 사용자 선택: 공급자·모델·월 예산 미정, 실제 호출 없이 기반 구현. 실제 공급자 연결·비용/시간 초과 검증은 추후. 3.2 미착수. |
 | 3.2 | 2/AI / 철학별 분석·공식 이벤트 해석 | 리서치 | 3.1 | D+25–29 / 4일 | 미착수 | — |  |
 | 3.3 | 2/AI / 반론·PM·동조 통제·호출 한도 | 개발 | 3.2 | D+29–32 / 3일 | 미착수 | — |  |
 | 3.4 | 2/AI / 제안·독립 위험 엔진 계약 | 위험 | 3.3 | D+32–35 / 3일 | 미착수 | — |  |
