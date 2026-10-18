@@ -7,6 +7,7 @@
 - `plan-v1.0.0`: 최초 설계·운용 설계·의사결정을 `docs/baselines/v1.0`에 원문과 SHA-256으로 보존한 Git 태그. 초기 개발 코드도 같은 커밋에 보존합니다.
 - `plan-v1.1.0`: CR-0001로 승인 범위 안의 데이터 MVP와 끝까지의 WBS를 구체화한 기준선. `docs/baselines/v1.1/wbs.toml`과 해시를 보존합니다.
 - `plan-v1.2.0`: CR-0002 운영 기반 0.3–0.6과 선행 게이트/일정을 담은 `docs/baselines/v1.2/wbs.toml`·해시. 태그/원격 게시 결과는 최신 검증 기록에서 구분합니다.
+- `plan-v1.3.0`: CR-0003의 지표·원천·시점·Agent 입력 선행 작업 1.9–1.19와 재예측 일정. `docs/baselines/v1.3/wbs.toml`·해시 보존. 기존 태그는 재작성하지 않으며 로컬/원격 태그 게시 여부를 인계 기록에서 구분한다.
 - `docs/PROJECT_PLAN.md`: 현재 유효한 설계. 기준선 스냅샷을 수정하지 않고 현재 문서와 비교합니다.
 - `docs/management/wbs.toml`: 작업의 단일 관리 원본. `docs/WBS.md`는 생성 결과입니다.
 

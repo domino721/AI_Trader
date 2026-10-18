@@ -34,14 +34,17 @@ def planning(tmp_path):
 def test_current_plan_preserves_old_baselines_and_requires_windows_acceptance(planning):
     module, _ = planning
     plan = module.validate()
-    assert plan["plan_version"] == "1.2.0"
+    assert plan["plan_version"] == "1.3.0"
     tasks = {t["id"]: t for t in plan["tasks"]}
-    assert len(tasks) == 36
+    assert len(tasks) == 47
     assert tasks["0.6"]["status"] == "blocked"
     assert "0.6" in tasks["3.2"]["depends_on"]
+    assert "1.19" in tasks["3.2"]["depends_on"]
+    assert "1.19" in tasks["4.1"]["depends_on"]
+    assert all(tasks[f"1.{i}"]["status"] == "not_started" for i in range(9, 20))
 
 
-@pytest.mark.parametrize("version", ["v1.1", "v1.2"])
+@pytest.mark.parametrize("version", ["v1.1", "v1.2", "v1.3"])
 def test_any_immutable_baseline_change_is_rejected(planning, version):
     module, root = planning
     path = root / "docs/baselines" / version / "wbs.toml"

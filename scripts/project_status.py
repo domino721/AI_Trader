@@ -34,6 +34,11 @@ def validate():
             "CR-0002",
         ),
     }
+    baselines["1.3.0"] = (
+        "v1.3",
+        "3414ae2e001899c8b86e1b6c25b1b57238ca683b50d0320d0f0c2c914555b147",
+        "CR-0003",
+    )
     known = {}
     for version, (directory, digest, change) in baselines.items():
         baseline_path = ROOT / "docs/baselines" / directory / "wbs.toml"
@@ -140,6 +145,7 @@ def render(plan):
         "",
         "변경관리: [관리 규칙](management/CONTROL.md) · "
         "[CR-0001](changes/CR-0001.md) · [CR-0002](changes/CR-0002.md) · "
+        "[CR-0003](changes/CR-0003.md) · "
         "[일일 현황](management/STATUS.md)",
         "",
     ]

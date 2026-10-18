@@ -4,7 +4,7 @@
 
 **현재 판정: 연구·운영 기반 개발 중이며 실제 자금 자동 거래는 미준비입니다.** 데이터 수집·검수와 지식 출처/검색의 소규모 검증, 오프라인 모델 호출 기반, 단일 호스트 운영 현황판이 있습니다. 실제 AI 토론·연속 포트폴리오 백테스트·브로커 주문/잔고 대사는 아직 없습니다. 합성 데모의 성과는 투자 수익성 증거가 아닙니다.
 
-[검토 결과·문제·실거래까지의 조건](docs/TRADING_READINESS.md) · [현재 실적](docs/management/STATUS.md) · [WBS](docs/WBS.md) · [운영 지침](docs/OPERATIONS.md)
+[다음 Agent 인계](docs/AGENT_HANDOFF.md) · [지표·데이터 설계](docs/INDICATOR_DATA_DESIGN.md) · [검토 결과·문제·실거래까지의 조건](docs/TRADING_READINESS.md) · [현재 실적](docs/management/STATUS.md) · [WBS](docs/WBS.md) · [운영 지침](docs/OPERATIONS.md)
 
 ## 시작하기
 
@@ -58,6 +58,6 @@ uv run --frozen python scripts/project_status.py --check
 | research/risk/execution | 합성 분석·위험 규칙·독립 1회 가상 체결 데모 |
 | api/cli | 인증 가능한 연구 운영 API·명령 진입점 |
 
-현재 계획 v1.2.0은 [CR-0002](docs/changes/CR-0002.md)로 운영 작업 0.3–0.6을 추가했으며 이전 기준선은 보존합니다. 전체 36개 중 16개 완료, 3.1 진행, 0.6 대상 Windows PC 수용 차단입니다. 완료 개수는 실거래 준비율이 아닙니다.
+현재 계획 v1.3.0은 [CR-0003](docs/changes/CR-0003.md)로 지표·재무·피처·시장 데이터 운영 작업 1.9–1.19를 추가했습니다. 운영 기반은 CR-0002에 기록하며 이전 기준선은 보존합니다. 전체 47개 중 16개 완료, 3.1 진행, 0.6 대상 Windows PC 수용 차단, 29개 미착수입니다. 신규 11개는 계획이며 구현하지 않았습니다. 완료 개수는 실거래 준비율이 아닙니다.
 
 [설계](docs/PROJECT_PLAN.md) · [결정/미정](docs/DECISIONS.md) · [운용 역할](docs/OPERATING_MODEL.md) · [변경관리](docs/management/CONTROL.md) · [최신 검증](docs/management/OPS_VALIDATION_2026-10-18.md)
