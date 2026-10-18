@@ -390,7 +390,7 @@ def test_parser_keeps_long_section_tail_and_never_skips_chunk_boundary(source, t
     from ai_trader.knowledge.index import parse_document_chunks
 
     text = "# Synthetic\n" + ("a" * 350 + " " + "b" * 330 + " ") * 80 + " UNIQUE_TAIL"
-    (tmp_path / "source.md").write_text(text, encoding="utf-8")
+    (tmp_path / "source.md").write_bytes(text.encode("utf-8"))
     source["content_sha256"] = hashlib.sha256(text.encode()).hexdigest()
     chunks = parse_document_chunks(Document(**source), tmp_path)
     assert "UNIQUE_TAIL" in chunks[-1].text

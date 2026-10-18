@@ -192,6 +192,7 @@ def test_timeout_does_not_retry_refund_or_redispatch_after_restart(tmp_path):
         ('{"x":1,"x":2}', "invalid_response_json"),
         ("x" * 65537, "response_too_large"),
     ],
+    ids=["broken", "null", "array", "nan", "infinity", "duplicate-key", "oversized"],
 )
 def test_bad_response_abstains_preserves_bounded_raw_and_never_retries(tmp_path, raw, reason):
     provider = FixtureProvider((raw,))

@@ -55,16 +55,29 @@ OS 잠금으로 실행기/백업의 호스트 동시 사용을 막고, SQLite �
 Stop-ScheduledTask -TaskName 'AITrader-Research-Prod'
 $env:AI_TRADER_ENVIRONMENT = 'prod'
 $env:AI_TRADER_STATE_DIR = $state
-# API 토큰은 기존 보호된 로컬 런타임에서 제공. 채팅/저장소에 넣지 않습니다.
-uv run --frozen ai-trader ops recover
-uv run --frozen ai-trader ops backup --target 'D:\AITraderBackups\new-backup-directory'
+# 보호된 로컬 파일에서 현재 셸에만 주입하며 값을 출력하지 않습니다.
+$env:AI_TRADER_API_TOKEN = [IO.File]::ReadAllText($token).Trim()
+try {
+  uv run --frozen ai-trader ops recover
+  if ($LASTEXITCODE -ne 0) { throw 'Recovery check failed.' }
+  uv run --frozen ai-trader ops backup --target 'D:\AITraderBackups\new-backup-directory'
+  if ($LASTEXITCODE -ne 0) { throw 'Backup failed.' }
+} finally {
+  Remove-Item Env:AI_TRADER_API_TOKEN -ErrorAction SilentlyContinue
+}
 ```
 
 `recover`는 heartbeat가 만료된 실행만 중단으로 확정합니다. 방금 강제 종료했다면 기본 lease 30초가 지나야 합니다. 복원은 원래 상태를 덮어쓰지 않고 **존재하지 않는 새 상태 경로**에만 허용합니다. 환경·파일 경로·체크섬·SQLite 무결성이 맞지 않으면 거부합니다. 백업/복원용 CLI도 prod 설정 검증이 적용됩니다. 토큰 파일은 백업에 포함하지 않으며 별도 보관·복구 절차가 필요합니다.
 
 ```powershell
 $env:AI_TRADER_STATE_DIR = 'D:\AITraderRestore\new-prod-state'
-uv run --frozen ai-trader ops restore --source 'D:\AITraderBackups\new-backup-directory'
+$env:AI_TRADER_API_TOKEN = [IO.File]::ReadAllText($token).Trim()
+try {
+  uv run --frozen ai-trader ops restore --source 'D:\AITraderBackups\new-backup-directory'
+  if ($LASTEXITCODE -ne 0) { throw 'Restore failed.' }
+} finally {
+  Remove-Item Env:AI_TRADER_API_TOKEN -ErrorAction SilentlyContinue
+}
 ```
 
 새 경로에서 점검한 뒤 시작 스크립트의 상태 경로를 명시적으로 바꿉니다. 기존 디렉터리를 삭제하거나 환경 소유권 DB를 임의 수정하는 방법을 복원 절차로 사용하지 않습니다.
