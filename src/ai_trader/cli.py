@@ -28,6 +28,17 @@ def main() -> None:
     commands.add_parser("doctor", help="check the installed research environment")
     model_smoke = commands.add_parser("llm-smoke", help="test offline fixture invocation only")
     model_smoke.add_argument("--request-id", default="offline-smoke-v1")
+    ops = commands.add_parser("ops", help="single-host research operations and recovery")
+    ops_actions = ops.add_subparsers(dest="ops_action", required=True)
+    ops_run = ops_actions.add_parser("run")
+    ops_run.add_argument("--run-id", required=True)
+    ops_run.add_argument("--as-of", type=datetime.fromisoformat)
+    ops_actions.add_parser("list")
+    ops_actions.add_parser("recover")
+    ops_backup = ops_actions.add_parser("backup")
+    ops_backup.add_argument("--target", type=Path, required=True)
+    ops_restore = ops_actions.add_parser("restore")
+    ops_restore.add_argument("--source", type=Path, required=True)
     data = commands.add_parser("data", help="collect, inspect and replay research data")
     actions = data.add_subparsers(dest="data_action", required=True)
     gather = actions.add_parser("collect")
@@ -51,6 +62,33 @@ def main() -> None:
     knowledge.add_argument("--top-k", type=int, default=5)
     knowledge.add_argument("--evaluate-benchmark", type=Path)
     args = parser.parse_args()
+    if args.command == "ops":
+        from ai_trader.ops.backup import backup, restore
+        from ai_trader.ops.runner import Operator
+
+        try:
+            config = Settings()
+            if args.ops_action == "restore":
+                result = restore(config, args.source)
+            elif args.ops_action == "backup":
+                result = backup(config, args.target)
+            else:
+                operator = Operator(config)
+                if args.ops_action == "list":
+                    result = {"runs": operator.store.list_runs()}
+                elif args.ops_action == "recover":
+                    result = {
+                        "interrupted_runs": operator.store.recover_stale(config.ops_lease_seconds)
+                    }
+                else:
+                    operator.submit(args.run_id, args.as_of)
+                    result = operator.execute(args.run_id)
+            print(json.dumps(result, indent=2))
+            if args.ops_action == "run" and result["status"] != "succeeded":
+                raise SystemExit(2)
+        except (OSError, ValueError, sqlite3.Error) as error:
+            parser.exit(1, f"Operations failed: {type(error).__name__}\n")
+        return
     if args.command == "llm-smoke":
         from ai_trader.llm.fixture import fixture_request
         from ai_trader.llm.models import InvocationPolicy
@@ -64,8 +102,10 @@ def main() -> None:
                 monthly_reservation_limit_usd=Decimal("0.03"),
                 attempt_reservation_usd=Decimal("0.01"),
             )
+            config = Settings()
+            config.prepare_state()
             result = invoke(
-                fixture_request(args.request_id), policy, FixtureProvider(), Settings().state_dir
+                fixture_request(args.request_id), policy, FixtureProvider(), config.state_dir
             )
         except (OSError, ValueError, sqlite3.Error) as error:
             parser.exit(1, f"Offline model operation failed: {type(error).__name__}\n")
@@ -76,6 +116,7 @@ def main() -> None:
     if args.command == "knowledge":
         settings = Settings()
         try:
+            settings.prepare_state()
             if args.evaluate_benchmark is not None:
                 bench = load_evaluation_benchmark(args.evaluate_benchmark)
                 if args.snapshot_id:
@@ -149,6 +190,7 @@ def main() -> None:
             raise SystemExit(2)
         return
     settings = Settings()
+    settings.prepare_state()
     if args.command == "data":
         try:
             if args.data_action == "replay":

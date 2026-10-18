@@ -21,6 +21,7 @@ def collect(
     client: httpx.Client | None = None,
     source: SourceClient | None = None,
 ) -> DataSnapshot:
+    settings.prepare_state()
     selected = tuple(symbols or (item.symbol for item in UNIVERSE))
     known = {item.symbol: item for item in UNIVERSE}
     if not selected or len(set(selected)) != len(selected) or set(selected) - known.keys():
@@ -98,6 +99,7 @@ def collect(
 
 
 def replay(settings: Settings, snapshot_id: str) -> dict:
+    settings.prepare_state()
     archive = Archive(settings.state_dir)
     saved = archive.load_snapshot(snapshot_id)
     for receipt in saved.receipts:

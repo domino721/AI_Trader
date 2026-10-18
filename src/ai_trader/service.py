@@ -10,6 +10,7 @@ from ai_trader.store import RunStore
 
 
 def run_demo(request_id: str, settings: Settings) -> DemoRun:
+    settings.prepare_state()
     store = RunStore(settings.state_dir)
     existing = store.get(request_id)
     if existing is not None:

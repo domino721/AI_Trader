@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -75,7 +76,8 @@ def test_response_request_policy_and_usage_are_persisted_without_order_authority
     assert json.loads(policy_json)["model_id"] == "fixture-v1"
     assert json.loads(result_json)["offline_only"] is True
     assert usage["input_tokens"] == usage["output_tokens"] == 0
-    assert (tmp_path / "llm/invocations.db").stat().st_mode & 0o777 == 0o600
+    if os.name != "nt":
+        assert (tmp_path / "llm/invocations.db").stat().st_mode & 0o777 == 0o600
 
 
 def test_same_id_replays_saved_response_after_restart_and_even_when_disabled(tmp_path):

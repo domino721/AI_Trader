@@ -13,7 +13,7 @@ def load_catalog(path: Path) -> Catalog:
     return Catalog.model_validate_json(path.read_bytes())
 
 
-def verify_content(document: Document, root: Path) -> None:
+def verify_content(document: Document, root: Path, max_bytes: int | None = None) -> str:
     root = root.resolve()
     relative = Path(document.content_path)
     if relative.is_absolute() or ".." in relative.parts:
@@ -21,13 +21,17 @@ def verify_content(document: Document, root: Path) -> None:
     path = (root / relative).resolve()
     if not path.is_relative_to(root):
         raise ValueError("content path escapes source root")
-    body = path.read_bytes()
+    with path.open("rb") as stream:
+        body = stream.read(max_bytes + 1) if max_bytes is not None else stream.read()
+    if max_bytes is not None and len(body) > max_bytes:
+        raise ValueError("document exceeds parser size limit; no partial index was created")
     if hashlib.sha256(body).hexdigest() != document.content_sha256:
         raise ValueError("source content checksum mismatch")
     text = body.decode("utf-8")
     for location in document.locations:
         if text.count(location.marker) != 1:
             raise ValueError(f"citation marker missing or ambiguous: {location.location_id}")
+    return text
 
 
 def check_catalog(catalog: Catalog, root: Path, decision_time: datetime, purpose: Purpose) -> dict:

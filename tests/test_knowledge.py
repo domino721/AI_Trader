@@ -137,6 +137,20 @@ def test_source_path_escape_rejected(source, tmp_path, path):
     assert report(source, tmp_path)["status"] == "blocked"
 
 
+def test_parser_uses_the_verified_bytes_and_refuses_oversized_input(source, tmp_path, monkeypatch):
+    from ai_trader.knowledge import index
+
+    def unexpected_second_read(*args, **kwargs):
+        raise AssertionError("parser must use the verified bytes")
+
+    monkeypatch.setattr(Path, "read_text", unexpected_second_read)
+    chunks = index.parse_document_chunks(Document(**source), tmp_path)
+    assert "Synthetic evidence" in chunks[0].text
+    monkeypatch.setattr(index, "MAX_DOCUMENT_BYTES", len(BODY) - 1)
+    with pytest.raises(ValueError, match="size limit"):
+        index.parse_document_chunks(Document(**source), tmp_path)
+
+
 def test_symlink_escape_rejected(source, tmp_path):
     (tmp_path / "link").symlink_to(tmp_path.parent, target_is_directory=True)
     source["content_path"] = "link/outside.md"
@@ -338,6 +352,51 @@ def test_parse_chunk_and_snapshot_replay_are_deterministic(source, tmp_path):
     assert replayed["replay"] == "identical"
 
 
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("title", "forged title"),
+        ("available_at", "2020-01-01T00:00:00Z"),
+        ("chunk_id", "0" * 64),
+        ("location_label", "invented location"),
+        ("allowed_uses", ["local_storage"]),
+    ],
+)
+def test_stored_snapshot_tampering_is_rejected_before_search(source, tmp_path, field, value):
+    from ai_trader.knowledge.index import build_knowledge_snapshot, load_knowledge_snapshot
+
+    snap = build_knowledge_snapshot(Catalog(documents=(Document(**source),)), tmp_path, tmp_path)
+    path = tmp_path / "knowledge/snapshots" / f"{snap.snapshot_id}.json"
+    payload = json.loads(path.read_text())
+    payload["chunks"][0][field] = value
+    path.write_text(json.dumps(payload))
+    with pytest.raises(ValueError):
+        load_knowledge_snapshot(tmp_path, snap.snapshot_id)
+
+
+def test_duplicate_and_legacy_snapshot_are_rejected(source, tmp_path):
+    from ai_trader.knowledge.index import build_knowledge_snapshot, search_knowledge
+
+    snap = build_knowledge_snapshot(Catalog(documents=(Document(**source),)), tmp_path)
+    with pytest.raises(ValueError):
+        search_knowledge(snap.model_copy(update={"chunks": snap.chunks * 2}), "evidence", DECISION)
+    with pytest.raises(ValueError, match="legacy"):
+        search_knowledge(
+            snap.model_copy(update={"parser_version": "plain-v1"}), "evidence", DECISION
+        )
+
+
+def test_parser_keeps_long_section_tail_and_never_skips_chunk_boundary(source, tmp_path):
+    from ai_trader.knowledge.index import parse_document_chunks
+
+    text = "# Synthetic\n" + ("a" * 350 + " " + "b" * 330 + " ") * 80 + " UNIQUE_TAIL"
+    (tmp_path / "source.md").write_text(text)
+    source["content_sha256"] = hashlib.sha256(text.encode()).hexdigest()
+    chunks = parse_document_chunks(Document(**source), tmp_path)
+    assert "UNIQUE_TAIL" in chunks[-1].text
+    assert all(b.char_start <= a.char_end for a, b in zip(chunks, chunks[1:], strict=False))
+
+
 def test_html_script_stripping_and_non_indexing_rights_rejected(source, tmp_path):
     from ai_trader.knowledge.index import parse_document_chunks
 
@@ -487,9 +546,40 @@ def test_principles_evaluation_benchmark_passes_offline(tmp_path, monkeypatch, c
     assert report["hit_rate"] == 1.0
     assert report["citation_accuracy"] == 1.0
     assert report["numeric_accuracy"] == 1.0
+    assert report["numeric_cases"] == 1
+    assert report["numeric_metric_scope"] == "source_text_presence_only"
+    assert report["required_text_accuracy"] == 1.0
     assert report["temporal_guard_accuracy"] == 1.0
     assert report["historical_backtest_approved"] is False
     assert report["trading_approved"] is False
+
+
+def test_untested_numeric_and_temporal_categories_are_not_reported_as_perfect(source, tmp_path):
+    from ai_trader.knowledge.index import build_knowledge_snapshot, evaluate_knowledge_benchmark
+    from ai_trader.knowledge.models import EvaluationBenchmark, EvaluationCase
+
+    source["rights"]["allowed_uses"].append("model_context")
+    snap = build_knowledge_snapshot(Catalog(documents=(Document(**source),)), tmp_path)
+    bench = EvaluationBenchmark(
+        benchmark_id="text-only",
+        catalog_path="catalog.json",
+        cases=(
+            EvaluationCase(
+                case_id="text",
+                description="text without numeric claims",
+                query="Synthetic",
+                decision_time=DECISION,
+                expected_document_id="fixture",
+                expected_location_id="intro",
+                required_substrings=("Synthetic",),
+            ),
+        ),
+    )
+    result = evaluate_knowledge_benchmark(bench, snap)
+    assert result.status == "passed"
+    assert result.required_text_accuracy == 1
+    assert result.numeric_accuracy is None and result.numeric_cases == 0
+    assert result.temporal_guard_accuracy is None and result.temporal_cases == 0
 
 
 def test_evaluation_gate_blocks_on_wrong_location_missing_figure_or_time_leak(

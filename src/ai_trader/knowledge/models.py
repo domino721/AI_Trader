@@ -171,8 +171,8 @@ class Catalog(Record):
         return self
 
 
-PARSER_VERSION = "plain-v1"
-CHUNKER_VERSION = "fixed-char-v1"
+PARSER_VERSION = "plain-v2"
+CHUNKER_VERSION = "fixed-char-v2"
 
 
 class Chunk(Record):
@@ -191,8 +191,8 @@ class Chunk(Record):
     chunk_index: int = Field(ge=0)
     char_start: int = Field(ge=0)
     char_end: int = Field(gt=0)
-    parser_version: Literal["plain-v1"] = PARSER_VERSION
-    chunker_version: Literal["fixed-char-v1"] = CHUNKER_VERSION
+    parser_version: Literal["plain-v1", "plain-v2"] = PARSER_VERSION
+    chunker_version: Literal["fixed-char-v1", "fixed-char-v2"] = CHUNKER_VERSION
     text: Text
     text_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     untrusted_data_only: Literal[True] = True
@@ -211,8 +211,8 @@ class KnowledgeSnapshot(Record):
     schema_version: Literal["1.0"] = "1.0"
     snapshot_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     catalog_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    parser_version: Literal["plain-v1"] = PARSER_VERSION
-    chunker_version: Literal["fixed-char-v1"] = CHUNKER_VERSION
+    parser_version: Literal["plain-v1", "plain-v2"] = PARSER_VERSION
+    chunker_version: Literal["fixed-char-v1", "fixed-char-v2"] = CHUNKER_VERSION
     documents: tuple[Document, ...] = Field(min_length=1)
     chunks: tuple[Chunk, ...] = Field(min_length=1)
     untrusted_data_only: Literal[True] = True
@@ -310,10 +310,14 @@ class EvaluationReport(Record):
     status: Literal["passed", "blocked"]
     total_cases: int = Field(ge=1)
     passed_cases: int = Field(ge=0)
-    hit_rate: float = Field(ge=0.0, le=1.0)
-    citation_accuracy: float = Field(ge=0.0, le=1.0)
-    numeric_accuracy: float = Field(ge=0.0, le=1.0)
-    temporal_guard_accuracy: float = Field(ge=0.0, le=1.0)
+    hit_rate: float | None = Field(default=None, ge=0.0, le=1.0)
+    citation_accuracy: float | None = Field(default=None, ge=0.0, le=1.0)
+    numeric_accuracy: float | None = Field(default=None, ge=0.0, le=1.0)
+    temporal_guard_accuracy: float | None = Field(default=None, ge=0.0, le=1.0)
+    required_text_accuracy: float | None = Field(default=None, ge=0.0, le=1.0)
+    numeric_cases: int = Field(default=0, ge=0)
+    temporal_cases: int = Field(default=0, ge=0)
+    numeric_metric_scope: Literal["source_text_presence_only"] = "source_text_presence_only"
     cases: tuple[CaseResult, ...]
     untrusted_data_only: Literal[True] = True
     historical_backtest_approved: Literal[False] = False

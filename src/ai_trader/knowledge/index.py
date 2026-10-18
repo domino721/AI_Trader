@@ -10,6 +10,7 @@ from pathlib import Path
 
 from pydantic import AwareDatetime, TypeAdapter
 
+from ai_trader.data.archive import atomic_write
 from ai_trader.knowledge.catalog import verify_content
 from ai_trader.knowledge.models import (
     CHUNKER_VERSION,
@@ -26,7 +27,7 @@ from ai_trader.knowledge.models import (
     SearchReport,
 )
 
-MAX_SECTION_RAW_CHARS = 48_000
+MAX_DOCUMENT_BYTES = 20 * 1024 * 1024
 CHUNK_SIZE = 600
 CHUNK_OVERLAP = 100
 
@@ -101,15 +102,13 @@ def _clean_text(raw_slice: str, media_type: str) -> str:
 def parse_document_chunks(document: Document, root: Path) -> list[Chunk]:
     if document.rights.status != "approved" or "indexing" not in document.rights.allowed_uses:
         raise ValueError("document does not permit indexing")
-    verify_content(document, root)
-    raw_text = (root.resolve() / Path(document.content_path)).resolve().read_text("utf-8")
+    raw_text = verify_content(document, root, max_bytes=MAX_DOCUMENT_BYTES)
     positions = [(raw_text.index(location.marker), location) for location in document.locations]
     positions.sort(key=lambda item: item[0])
     chunks: list[Chunk] = []
-    step = CHUNK_SIZE - CHUNK_OVERLAP
     for idx, (pos, location) in enumerate(positions):
         next_pos = positions[idx + 1][0] if idx + 1 < len(positions) else len(raw_text)
-        raw_slice = raw_text[pos : min(next_pos, pos + MAX_SECTION_RAW_CHARS)]
+        raw_slice = raw_text[pos:next_pos]
         section_text = _clean_text(raw_slice, document.media_type)
         if not section_text:
             raise ValueError(f"empty parsed section: {location.location_id}")
@@ -162,7 +161,7 @@ def parse_document_chunks(document: Document, root: Path) -> list[Chunk]:
                 chunk_index += 1
             if end >= len(section_text):
                 break
-            start = max(start + step, end - CHUNK_OVERLAP)
+            start = max(start + 1, end - CHUNK_OVERLAP)
     return chunks
 
 
@@ -196,8 +195,12 @@ def build_knowledge_snapshot(
         out_dir = state_dir / "knowledge" / "snapshots"
         out_dir.mkdir(parents=True, exist_ok=True)
         path = out_dir / f"{snapshot.snapshot_id}.json"
-        if not path.exists():
-            path.write_text(snapshot.model_dump_json(indent=2), encoding="utf-8")
+        if path.exists():
+            existing = load_knowledge_snapshot(state_dir, snapshot.snapshot_id)
+            if existing != snapshot:
+                raise ValueError("immutable knowledge snapshot differs")
+        else:
+            atomic_write(path, snapshot.model_dump_json(indent=2).encode())
     return snapshot
 
 
@@ -205,7 +208,85 @@ def load_knowledge_snapshot(state_dir: Path, snapshot_id: str) -> KnowledgeSnaps
     if not re.fullmatch(r"[0-9a-f]{64}", snapshot_id):
         raise ValueError("invalid snapshot_id")
     path = state_dir / "knowledge" / "snapshots" / f"{snapshot_id}.json"
-    return KnowledgeSnapshot.model_validate_json(path.read_bytes())
+    snapshot = KnowledgeSnapshot.model_validate_json(path.read_bytes())
+    validate_snapshot(snapshot)
+    if snapshot.snapshot_id != snapshot_id:
+        raise ValueError("knowledge snapshot path/id mismatch")
+    return snapshot
+
+
+def validate_snapshot(snapshot: KnowledgeSnapshot) -> None:
+    """Verify the complete stored envelope before retrieval; raw files are not required."""
+    if (snapshot.parser_version, snapshot.chunker_version) != (PARSER_VERSION, CHUNKER_VERSION):
+        raise ValueError("legacy knowledge snapshot must be rebuilt from pinned original files")
+    catalog = Catalog.model_validate_json(Catalog(documents=snapshot.documents).model_dump_json())
+    catalog_sha = hashlib.sha256(catalog.model_dump_json().encode()).hexdigest()
+    if catalog_sha != snapshot.catalog_sha256:
+        raise ValueError("knowledge catalog checksum mismatch")
+    documents = {document.version_id: document for document in catalog.documents}
+    identities, seen, indexed = [], set(), set()
+    for chunk in snapshot.chunks:
+        document = documents.get(chunk.version_id)
+        if document is None:
+            raise ValueError("chunk references unknown document version")
+        locations = {location.location_id: location for location in document.locations}
+        location = locations.get(chunk.location_id)
+        if location is None or chunk.location_label != location.label:
+            raise ValueError("chunk citation metadata mismatch")
+        if any(
+            getattr(chunk, key) != expected
+            for key, expected in {
+                "document_id": document.document_id,
+                "kind": document.kind,
+                "title": document.title,
+                "edition": document.edition,
+                "source_url": document.source_url,
+                "available_at": document.available_at,
+                "allowed_uses": document.rights.allowed_uses,
+                "attribution": document.rights.attribution,
+                "parser_version": snapshot.parser_version,
+                "chunker_version": snapshot.chunker_version,
+                "instruction_like": contains_instruction_like_text(chunk.text),
+            }.items()
+        ):
+            raise ValueError("chunk/document metadata mismatch")
+        if hashlib.sha256(chunk.text.encode()).hexdigest() != chunk.text_sha256:
+            raise ValueError("chunk content checksum mismatch")
+        payload = {
+            key: getattr(chunk, key)
+            for key in (
+                "version_id",
+                "location_id",
+                "chunk_index",
+                "char_start",
+                "char_end",
+                "parser_version",
+                "chunker_version",
+                "text_sha256",
+            )
+        }
+        digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+        if chunk.chunk_id != digest or digest in seen:
+            raise ValueError("chunk identity mismatch or duplicate")
+        identities.append(digest)
+        seen.add(digest)
+        indexed.add(document.version_id)
+    if indexed != set(documents):
+        raise ValueError("document has no indexed chunks")
+    expected = hashlib.sha256(
+        json.dumps(
+            {
+                "catalog_sha256": catalog_sha,
+                "parser_version": snapshot.parser_version,
+                "chunker_version": snapshot.chunker_version,
+                "documents": [document.version_id for document in snapshot.documents],
+                "chunks": identities,
+            },
+            sort_keys=True,
+        ).encode()
+    ).hexdigest()
+    if snapshot.snapshot_id != expected:
+        raise ValueError("knowledge snapshot checksum mismatch")
 
 
 def replay_knowledge_snapshot(
@@ -240,6 +321,7 @@ def search_knowledge(
     purpose: Purpose = "model_context",
     top_k: int = 5,
 ) -> SearchReport:
+    validate_snapshot(snapshot)
     decision_time = TypeAdapter(AwareDatetime).validate_python(decision_time)
     purpose = TypeAdapter(Purpose).validate_python(purpose)
     if top_k < 1 or top_k > 50:
@@ -341,6 +423,8 @@ def evaluate_knowledge_benchmark(
     num_hits = 0
     guard_total = 0
     guard_hits = 0
+    required_total = 0
+    required_hits = 0
 
     for case in benchmark.cases:
         report = search_knowledge(
@@ -391,11 +475,16 @@ def evaluate_knowledge_benchmark(
                 else:
                     missing_subs.append(sub)
             if case.required_substrings:
-                num_total += 1
+                required_total += 1
                 if not missing_subs:
-                    num_hits += 1
+                    required_hits += 1
                 else:
                     reasons.append("missing_required_substring")
+                numeric = [sub for sub in case.required_substrings if re.search(r"\d", sub)]
+                if numeric:
+                    num_total += 1
+                    if all(sub in combined_text for sub in numeric):
+                        num_hits += 1
 
         results.append(
             CaseResult(
@@ -410,10 +499,10 @@ def evaluate_knowledge_benchmark(
         )
 
     passed_cases = sum(1 for r in results if r.passed)
-    hit_rate = round(doc_hits / pos_total, 4) if pos_total else 1.0
-    citation_acc = round(loc_hits / pos_total, 4) if pos_total else 1.0
-    numeric_acc = round(num_hits / num_total, 4) if num_total else 1.0
-    temporal_acc = round(guard_hits / guard_total, 4) if guard_total else 1.0
+    hit_rate = round(doc_hits / pos_total, 4) if pos_total else None
+    citation_acc = round(loc_hits / pos_total, 4) if pos_total else None
+    numeric_acc = round(num_hits / num_total, 4) if num_total else None
+    temporal_acc = round(guard_hits / guard_total, 4) if guard_total else None
     status = "passed" if passed_cases == len(results) else "blocked"
 
     return EvaluationReport(
@@ -426,5 +515,8 @@ def evaluate_knowledge_benchmark(
         citation_accuracy=citation_acc,
         numeric_accuracy=numeric_acc,
         temporal_guard_accuracy=temporal_acc,
+        required_text_accuracy=round(required_hits / required_total, 4) if required_total else None,
+        numeric_cases=num_total,
+        temporal_cases=guard_total,
         cases=tuple(results),
     )

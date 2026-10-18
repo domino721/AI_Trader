@@ -22,13 +22,33 @@ PROTECTED = (
 
 def validate():
     current = tomllib.loads((ROOT / "docs/management/wbs.toml").read_text())
-    baseline_path = ROOT / "docs/baselines/v1.1/wbs.toml"
-    expected_hash = (baseline_path.parent / "wbs.sha256").read_text().strip()
-    if hashlib.sha256(baseline_path.read_bytes()).hexdigest() != expected_hash:
-        raise ValueError("immutable WBS baseline changed")
-    baseline = tomllib.loads(baseline_path.read_text())
-    if current["plan_version"] != baseline["plan_version"]:
+    baselines = {
+        "1.1.0": (
+            "v1.1",
+            "6bf23d295e53ae3ffa2bf74c60deacf5e2c695b260940324f050e5ffa91c0bf0",
+            "CR-0001",
+        ),
+        "1.2.0": (
+            "v1.2",
+            "597770ebc13ec7de50a86354e90a16305e8e43092dfe5d188f88f689d78a4d35",
+            "CR-0002",
+        ),
+    }
+    known = {}
+    for version, (directory, digest, change) in baselines.items():
+        baseline_path = ROOT / "docs/baselines" / directory / "wbs.toml"
+        if hashlib.sha256(baseline_path.read_bytes()).hexdigest() != digest:
+            raise ValueError("immutable WBS baseline changed")
+        if (baseline_path.parent / "wbs.sha256").read_text().strip() != digest:
+            raise ValueError("immutable baseline checksum record changed")
+        if not (ROOT / "docs/changes" / f"{change}.md").is_file():
+            raise ValueError("baseline requires registered change request")
+        known[version] = tomllib.loads(baseline_path.read_text())
+        if known[version]["plan_version"] != version:
+            raise ValueError("baseline version mismatch")
+    if current["plan_version"] not in known:
         raise ValueError("plan version requires a new baseline and change request")
+    baseline = known[current["plan_version"]]
     manifest_path = ROOT / "docs/baselines/v1.0/manifest.json"
     for name, digest in json.loads(manifest_path.read_text())["sha256"].items():
         if hashlib.sha256((manifest_path.parent / name).read_bytes()).hexdigest() != digest:
@@ -92,7 +112,7 @@ def render(plan):
         "Git에 함께 커밋합니다.",
         "",
         "D+n은 승인된 일정 기준점 이후 계획 작업일입니다. "
-        "1인 개발 순차 배치를 가정한 초안 추정이며 "
+        "의존성 기반 초안 추정이며 "
         "달력 마감일·자동 작업 예약이 아닙니다. 관찰 기간·접근권한·예산에 따라 달라지는 예측은 "
         "아래 차단 사유에 기록하고, 기준 일정 변경은 CR과 새 버전으로 남깁니다.",
         "",
@@ -119,7 +139,8 @@ def render(plan):
     lines += [
         "",
         "변경관리: [관리 규칙](management/CONTROL.md) · "
-        "[CR-0001](changes/CR-0001.md) · [일일 현황](management/STATUS.md)",
+        "[CR-0001](changes/CR-0001.md) · [CR-0002](changes/CR-0002.md) · "
+        "[일일 현황](management/STATUS.md)",
         "",
     ]
     return "\n".join(lines)
