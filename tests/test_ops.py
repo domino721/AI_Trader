@@ -192,7 +192,8 @@ def test_backup_rejects_symlink_and_restore_rejects_traversal(tmp_path):
                     "../escape": "x",
                 },
             }
-        )
+        ),
+        encoding="utf-8",
     )
     with pytest.raises(ValueError, match="path_escape"):
         restore(config(tmp_path / "never-created"), source)

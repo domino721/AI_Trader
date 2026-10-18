@@ -298,7 +298,7 @@ def test_public_catalog_schema_and_sec_filing_provenance_contract():
 
 def test_cli_exit_codes_and_redacted_errors(source, tmp_path, monkeypatch, capsys):
     path = tmp_path / "catalog.json"
-    path.write_text(Catalog(documents=(Document(**source),)).model_dump_json())
+    path.write_text(Catalog(documents=(Document(**source),)).model_dump_json(), encoding="utf-8")
     args = [
         "ai-trader",
         "knowledge",
@@ -317,7 +317,7 @@ def test_cli_exit_codes_and_redacted_errors(source, tmp_path, monkeypatch, capsy
         main()
     assert blocked.value.code == 2
     assert json.loads(capsys.readouterr().out)["status"] == "blocked"
-    path.write_text('{"secret":"should-not-be-printed"}')
+    path.write_text('{"secret":"should-not-be-printed"}', encoding="utf-8")
     with pytest.raises(SystemExit) as invalid:
         main()
     assert invalid.value.code == 1
@@ -367,9 +367,9 @@ def test_stored_snapshot_tampering_is_rejected_before_search(source, tmp_path, f
 
     snap = build_knowledge_snapshot(Catalog(documents=(Document(**source),)), tmp_path, tmp_path)
     path = tmp_path / "knowledge/snapshots" / f"{snap.snapshot_id}.json"
-    payload = json.loads(path.read_text())
+    payload = json.loads(path.read_text(encoding="utf-8"))
     payload["chunks"][0][field] = value
-    path.write_text(json.dumps(payload))
+    path.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(ValueError):
         load_knowledge_snapshot(tmp_path, snap.snapshot_id)
 
@@ -390,7 +390,7 @@ def test_parser_keeps_long_section_tail_and_never_skips_chunk_boundary(source, t
     from ai_trader.knowledge.index import parse_document_chunks
 
     text = "# Synthetic\n" + ("a" * 350 + " " + "b" * 330 + " ") * 80 + " UNIQUE_TAIL"
-    (tmp_path / "source.md").write_text(text)
+    (tmp_path / "source.md").write_text(text, encoding="utf-8")
     source["content_sha256"] = hashlib.sha256(text.encode()).hexdigest()
     chunks = parse_document_chunks(Document(**source), tmp_path)
     assert "UNIQUE_TAIL" in chunks[-1].text
@@ -638,9 +638,11 @@ def test_evaluation_gate_blocks_on_wrong_location_missing_figure_or_time_leak(
     assert "unexpected_hits_returned" in res.cases[2].reasons
 
     bench_path = tmp_path / "bench.json"
-    bench_path.write_text(bench.model_dump_json())
+    bench_path.write_text(bench.model_dump_json(), encoding="utf-8")
     cat_path = tmp_path / "catalog.json"
-    cat_path.write_text(Catalog(documents=(Document(**source),)).model_dump_json())
+    cat_path.write_text(
+        Catalog(documents=(Document(**source),)).model_dump_json(), encoding="utf-8"
+    )
     monkeypatch.setenv("AI_TRADER_STATE_DIR", str(tmp_path))
     monkeypatch.setattr(
         sys,

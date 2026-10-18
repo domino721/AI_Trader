@@ -1,0 +1,2 @@
+# Preserve content hashes and UTF-8 source bytes across Linux and Windows checkouts.
+* text=auto eol=lf

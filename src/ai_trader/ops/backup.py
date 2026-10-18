@@ -53,7 +53,7 @@ def backup(settings: Settings, target: Path):
             "files": files,
         }
         path = target / "backup-manifest.json"
-        path.write_text(json.dumps(manifest, sort_keys=True, indent=2))
+        path.write_text(json.dumps(manifest, sort_keys=True, indent=2), encoding="utf-8")
         path.chmod(0o600)
         return {"status": "completed", "files": len(files), "environment": settings.environment}
 

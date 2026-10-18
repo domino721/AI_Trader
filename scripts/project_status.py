@@ -21,7 +21,7 @@ PROTECTED = (
 
 
 def validate():
-    current = tomllib.loads((ROOT / "docs/management/wbs.toml").read_text())
+    current = tomllib.loads((ROOT / "docs/management/wbs.toml").read_text(encoding="utf-8"))
     baselines = {
         "1.1.0": (
             "v1.1",
@@ -39,18 +39,18 @@ def validate():
         baseline_path = ROOT / "docs/baselines" / directory / "wbs.toml"
         if hashlib.sha256(baseline_path.read_bytes()).hexdigest() != digest:
             raise ValueError("immutable WBS baseline changed")
-        if (baseline_path.parent / "wbs.sha256").read_text().strip() != digest:
+        if (baseline_path.parent / "wbs.sha256").read_text(encoding="utf-8").strip() != digest:
             raise ValueError("immutable baseline checksum record changed")
         if not (ROOT / "docs/changes" / f"{change}.md").is_file():
             raise ValueError("baseline requires registered change request")
-        known[version] = tomllib.loads(baseline_path.read_text())
+        known[version] = tomllib.loads(baseline_path.read_text(encoding="utf-8"))
         if known[version]["plan_version"] != version:
             raise ValueError("baseline version mismatch")
     if current["plan_version"] not in known:
         raise ValueError("plan version requires a new baseline and change request")
     baseline = known[current["plan_version"]]
     manifest_path = ROOT / "docs/baselines/v1.0/manifest.json"
-    for name, digest in json.loads(manifest_path.read_text())["sha256"].items():
+    for name, digest in json.loads(manifest_path.read_text(encoding="utf-8"))["sha256"].items():
         if hashlib.sha256((manifest_path.parent / name).read_bytes()).hexdigest() != digest:
             raise ValueError(f"immutable design baseline changed: {name}")
     tasks = {task["id"]: task for task in current["tasks"]}
@@ -154,8 +154,8 @@ def main():
     output = render(validate())
     path = ROOT / "docs/WBS.md"
     if args.write:
-        path.write_text(output)
-    elif not path.exists() or path.read_text() != output:
+        path.write_text(output, encoding="utf-8", newline="\n")
+    elif not path.exists() or path.read_text(encoding="utf-8") != output:
         raise SystemExit("WBS rendering is stale; run scripts/project_status.py --write")
     print("Plan baselines, dependencies, evidence and WBS rendering verified")
 

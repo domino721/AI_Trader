@@ -19,7 +19,7 @@ jobs:
       - run: bash scripts/check.sh
       - run: uv build
       - name: Parse Windows operation scripts
-        if: runner.os == 'Windows'
+        if: ${{ always() && runner.os == 'Windows' }}
         shell: pwsh
         run: |
           Get-ChildItem scripts/windows/*.ps1 | ForEach-Object {

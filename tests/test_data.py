@@ -453,7 +453,7 @@ def test_snapshot_tampering_and_path_traversal_are_rejected(tmp_path):
     path = archive.root / "snapshots" / f"{snapshot.snapshot_id}.json"
     body = json.loads(path.read_bytes())
     body["prices"][0]["close"] = "101"
-    path.write_text(json.dumps(body))
+    path.write_text(json.dumps(body), encoding="utf-8")
     with pytest.raises(ValueError, match="checksum"):
         archive.load_snapshot(snapshot.snapshot_id)
 

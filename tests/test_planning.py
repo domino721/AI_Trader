@@ -20,13 +20,13 @@ def planning(tmp_path):
     shutil.copytree(ROOT / "docs/changes", tmp_path / "docs/changes")
     (tmp_path / "docs/management").mkdir()
     shutil.copyfile(ROOT / "docs/management/wbs.toml", tmp_path / "docs/management/wbs.toml")
-    plan = tomllib.loads((tmp_path / "docs/management/wbs.toml").read_text())
+    plan = tomllib.loads((tmp_path / "docs/management/wbs.toml").read_text(encoding="utf-8"))
     for task in plan["tasks"]:
         for evidence in task.get("evidence", []):
             path = tmp_path / evidence
             if not path.exists():
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text("fixture evidence")
+                path.write_text("fixture evidence", encoding="utf-8")
     module.ROOT = tmp_path
     return module, tmp_path
 
@@ -45,17 +45,19 @@ def test_current_plan_preserves_old_baselines_and_requires_windows_acceptance(pl
 def test_any_immutable_baseline_change_is_rejected(planning, version):
     module, root = planning
     path = root / "docs/baselines" / version / "wbs.toml"
-    path.write_text(path.read_text() + "\n# unauthorized mutation\n")
+    path.write_text(
+        path.read_text(encoding="utf-8") + "\n# unauthorized mutation\n", encoding="utf-8"
+    )
     with pytest.raises(ValueError, match="immutable"):
         module.validate()
 
 
 def test_original_design_manifest_is_checked(planning):
     module, root = planning
-    manifest = json.loads((root / "docs/baselines/v1.0/manifest.json").read_text())
+    manifest = json.loads((root / "docs/baselines/v1.0/manifest.json").read_text(encoding="utf-8"))
     name = next(iter(manifest["sha256"]))
     path = root / "docs/baselines/v1.0" / name
-    path.write_text(path.read_text() + "changed")
+    path.write_text(path.read_text(encoding="utf-8") + "changed", encoding="utf-8")
     with pytest.raises(ValueError, match="immutable design"):
         module.validate()
 
@@ -71,9 +73,10 @@ def test_scope_change_without_new_baseline_is_rejected(planning):
     module, root = planning
     path = root / "docs/management/wbs.toml"
     path.write_text(
-        path.read_text().replace(
+        path.read_text(encoding="utf-8").replace(
             'name = "개발/운영 환경 경계·API 인증·준비 상태"', 'name = "silently changed scope"'
-        )
+        ),
+        encoding="utf-8",
     )
     with pytest.raises(ValueError, match="baseline scope"):
         module.validate()
