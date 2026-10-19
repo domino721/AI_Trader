@@ -58,6 +58,8 @@ uv run --frozen python scripts/project_status.py --check
 | research/risk/execution | 합성 분석·위험 규칙·독립 1회 가상 체결 데모 |
 | api/cli | 인증 가능한 연구 운영 API·명령 진입점 |
 
-현재 계획 v1.3.0은 [CR-0003](docs/changes/CR-0003.md)로 지표·재무·피처·시장 데이터 운영 작업 1.9–1.19를 추가했습니다. 운영 기반은 CR-0002에 기록하며 이전 기준선은 보존합니다. 전체 47개 중 16개 완료, 3.1 진행, 0.6 대상 Windows PC 수용 차단, 29개 미착수입니다. 신규 11개는 계획이며 구현하지 않았습니다. 완료 개수는 실거래 준비율이 아닙니다.
+데이터 확장 계획 [CR-0003](docs/changes/CR-0003.md)은 지표·재무·피처·시장 데이터 운영 작업 1.9–1.19를 추가했습니다. 운영 기반은 CR-0002에 기록하며 이전 기준선은 보존합니다. 전체 47개 중 16개 완료, 3.1 진행, 0.6 대상 Windows PC 수용 차단, 29개 미착수입니다. 신규 11개는 계획이며 구현하지 않았습니다. 완료 개수는 실거래 준비율이 아닙니다.
 
 [설계](docs/PROJECT_PLAN.md) · [결정/미정](docs/DECISIONS.md) · [운용 역할](docs/OPERATING_MODEL.md) · [변경관리](docs/management/CONTROL.md) · [최신 검증](docs/management/OPS_VALIDATION_2026-10-18.md)
+
+현재 계획은 **v1.4.0 / [CR-0004](docs/changes/CR-0004.md)**입니다. [PM·최종 결정 백테스트 설계](docs/PORTFOLIO_BACKTEST.md)에 분산·공분산·위험 기여·비중 구성 책임과 회의 최종 결정 전체의 생성/오프라인 재생·토론 × PM 비교를 추가했습니다. 설계이며 실제 PM/역사적 백테스트 구현은 아직 없습니다. 기존 지표·운영·모델 게이트와 WBS 상태를 유지합니다.

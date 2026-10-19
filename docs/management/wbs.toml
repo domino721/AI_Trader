@@ -1,6 +1,6 @@
-plan_version = "1.3.0"
+plan_version = "1.4.0"
 baseline_date = "2026-10-15"
-updated_on = "2026-10-18"
+updated_on = "2026-10-19"
 
 [[tasks]]
 id = "0.1"
@@ -382,12 +382,12 @@ status = "not_started"
 [[tasks]]
 id = "3.3"
 phase = "2/AI"
-name = "반론·PM·동조 통제·호출 한도"
+name = "반론·PM 이론/비중 구성·최종 제안"
 owner = "개발"
 depends_on = ["3.2"]
 baseline_start = 40
-duration = 3
-acceptance = "독립 초안·제한 라운드·반론·포트폴리오 조정 기록"
+duration = 5
+acceptance = "포트폴리오 이론 문헌/인용 확장·독립 초안/반론·동조/호출 한도·PM 상관/위험 기여/제약·실패 보류·최종 제안 기록"
 status = "not_started"
 
 [[tasks]]
@@ -396,9 +396,9 @@ phase = "2/AI"
 name = "제안·독립 위험 엔진 계약"
 owner = "위험"
 depends_on = ["3.3"]
-baseline_start = 43
+baseline_start = 45
 duration = 3
-acceptance = "AI가 한도·거부를 무시하지 못하고 실패 시 주문 없음"
+acceptance = "최종 제안/위험 결정 분리·한도 우회/미래 입력 차단·hold/defer/실패 시 주문 없음"
 status = "not_started"
 
 [[tasks]]
@@ -407,9 +407,9 @@ phase = "2/AI"
 name = "AI 근거 품질 종료 게이트"
 owner = "검수"
 depends_on = ["3.4"]
-baseline_start = 46
+baseline_start = 48
 duration = 2
-acceptance = "소규모 평가 세트·실패 처리·비용·동조 검증"
+acceptance = "고정 평가 세트·인용·동조·PM 계산 실패·구조화 결정·비용 검증"
 status = "not_started"
 
 [[tasks]]
@@ -418,31 +418,31 @@ phase = "3/연구"
 name = "PIT 데이터·XBRL·종목군·정정 검증"
 owner = "데이터"
 depends_on = ["3.5", "1.19"]
-baseline_start = 48
+baseline_start = 50
 duration = 5
-acceptance = "공급자/예산·재무 단위·당시 정보·상장폐지·수정 이력 검증"
+acceptance = "공급자/예산·당시 종목군/재무/공시/ETF 노출·추정 구간·상장폐지·정정/이용 시점 검증"
 status = "not_started"
 
 [[tasks]]
 id = "4.2"
 phase = "3/연구"
-name = "연속 포트폴리오 회계·백테스트"
+name = "최종 결정 생성/재생·연속 회계·백테스트"
 owner = "개발"
 depends_on = ["4.1"]
-baseline_start = 53
-duration = 5
-acceptance = "현금·매수/매도·기업행위·시점·주문 지연·미체결 검증"
+baseline_start = 55
+duration = 8
+acceptance = "전체 결정 생성/저장/오프라인 재생·계좌 상태·매수/매도·현금·비용·기업행위·시점·부분/미체결 검증"
 status = "not_started"
 
 [[tasks]]
 id = "4.3"
 phase = "3/연구"
-name = "비교군·비용·기여 분해"
+name = "토론 × PM 비교·비용·기여 분해"
 owner = "리서치"
 depends_on = ["4.2"]
-baseline_start = 58
-duration = 3
-acceptance = "사전 고정 비교군·현금/단일 전략/단순 결합 대비 비용·지연·회전율·LLM 비용/기여 확인; 핵심 대비 선택 지표·거시·뉴스의 중복/추가 효과와 탐색 횟수·제외 사유 기록"
+baseline_start = 63
+duration = 4
+acceptance = "단일/고정 결합·토론 × PM·뉴스 비교·실패 포함 전체 결정·비용/위험/경제성 보고; 핵심 대비 선택 지표/거시/뉴스 중복·탐색 횟수·제외 사유 기록"
 status = "not_started"
 
 [[tasks]]
@@ -451,9 +451,9 @@ phase = "3/연구"
 name = "Walk-forward·미사용 구간 검증"
 owner = "검수"
 depends_on = ["4.3"]
-baseline_start = 61
-duration = 4
-acceptance = "사전 고정 기준·과최적화·지식 오염 한계 보고"
+baseline_start = 67
+duration = 5
+acceptance = "동일 입력 재생·계좌 불일치/미래 변경 검사·walk-forward/미사용 구간·반복 실행·과최적화/오염 한계"
 status = "not_started"
 
 [[tasks]]
@@ -462,9 +462,9 @@ phase = "3/연구"
 name = "연구 종료·모의매매 진입 게이트"
 owner = "위험"
 depends_on = ["4.4"]
-baseline_start = 65
+baseline_start = 72
 duration = 2
-acceptance = "품질·위험·성과·재현성 근거와 운영 잔여 과제 확인"
+acceptance = "사전 고정 승격 기준·전체 결정/재생/위험/성과 근거·오염 한계·운영 잔여 과제 확인"
 status = "not_started"
 
 [[tasks]]
@@ -473,7 +473,7 @@ phase = "4/모의"
 name = "브로커·모의계좌·운영 한도 결정"
 owner = "사용자/개발"
 depends_on = ["4.5"]
-baseline_start = 67
+baseline_start = 74
 duration = 2
 acceptance = "이용 자격·API·투자금 가정·손실 한도·알림 결정"
 status = "not_started"
@@ -484,7 +484,7 @@ phase = "4/모의"
 name = "주문 상태·영속 ID·대사·복구"
 owner = "실행"
 depends_on = ["5.1"]
-baseline_start = 69
+baseline_start = 76
 duration = 5
 acceptance = "중복·부분 체결·취소·거절·통신 장애·재시작 검증"
 status = "not_started"
@@ -495,7 +495,7 @@ phase = "4/모의"
 name = "스케줄·신선도·알림·조회 화면"
 owner = "운영"
 depends_on = ["5.2"]
-baseline_start = 74
+baseline_start = 81
 duration = 4
 acceptance = "거래 일정·계좌/데이터 신선도·경보·운영 조회"
 status = "not_started"
@@ -506,7 +506,7 @@ phase = "4/모의"
 name = "전향 관찰·장애 훈련"
 owner = "운영"
 depends_on = ["5.3"]
-baseline_start = 78
+baseline_start = 85
 duration = 20
 acceptance = "사전 합의 기간의 모의 관찰·장애/차단/복구 증거; 기간 추정은 미확정"
 status = "not_started"
@@ -517,7 +517,7 @@ phase = "4/모의"
 name = "모의 운용 종료 게이트"
 owner = "위험"
 depends_on = ["5.4"]
-baseline_start = 98
+baseline_start = 105
 duration = 2
 acceptance = "대사·손실 통제·운영 부담·관찰 결과 검토"
 status = "not_started"
@@ -528,7 +528,7 @@ phase = "5/실거래"
 name = "실제 자본·종목·손실·승인 정책"
 owner = "사용자/위험"
 depends_on = ["5.5"]
-baseline_start = 100
+baseline_start = 107
 duration = 2
 acceptance = "사용자가 실제 금액·권한·승인·중지/복구 범위를 명시적으로 결정"
 status = "not_started"
@@ -539,7 +539,7 @@ phase = "5/실거래"
 name = "실거래 어댑터·환경 분리 검증"
 owner = "실행"
 depends_on = ["6.1"]
-baseline_start = 102
+baseline_start = 109
 duration = 4
 acceptance = "모의/실계좌 분리·중복/대사·위험/권한·제한 규모 검증"
 status = "not_started"
@@ -550,7 +550,7 @@ phase = "5/실거래"
 name = "제한 규모·수동 승인 운영"
 owner = "운영"
 depends_on = ["6.2"]
-baseline_start = 106
+baseline_start = 113
 duration = 10
 acceptance = "실거래 별도 승인 후 사전 합의 기간 관찰·실행 비용 확인"
 status = "not_started"
@@ -561,7 +561,7 @@ phase = "5/실거래"
 name = "운영 인계·정기 검토·확대 판단"
 owner = "사용자/운영"
 depends_on = ["6.3"]
-baseline_start = 116
+baseline_start = 123
 duration = 2
 acceptance = "운영 지침·검증·변경 이력·재평가; 규모 확대는 별도 결정"
 status = "not_started"

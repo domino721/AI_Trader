@@ -39,6 +39,11 @@ def validate():
         "3414ae2e001899c8b86e1b6c25b1b57238ca683b50d0320d0f0c2c914555b147",
         "CR-0003",
     )
+    baselines["1.4.0"] = (
+        "v1.4",
+        "f47636165c88bdeb6d76df943bf9853d89398805be99cedaa503e78033baf20d",
+        "CR-0004",
+    )
     known = {}
     for version, (directory, digest, change) in baselines.items():
         baseline_path = ROOT / "docs/baselines" / directory / "wbs.toml"
@@ -54,10 +59,13 @@ def validate():
     if current["plan_version"] not in known:
         raise ValueError("plan version requires a new baseline and change request")
     baseline = known[current["plan_version"]]
-    manifest_path = ROOT / "docs/baselines/v1.0/manifest.json"
-    for name, digest in json.loads(manifest_path.read_text(encoding="utf-8"))["sha256"].items():
-        if hashlib.sha256((manifest_path.parent / name).read_bytes()).hexdigest() != digest:
-            raise ValueError(f"immutable design baseline changed: {name}")
+    for directory in ("v1.0", "v1.4"):
+        manifest_path = ROOT / "docs/baselines" / directory / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for name, digest in manifest["sha256"].items():
+            content = (manifest_path.parent / name).read_bytes()
+            if hashlib.sha256(content).hexdigest() != digest:
+                raise ValueError(f"immutable design baseline changed: {directory}/{name}")
     tasks = {task["id"]: task for task in current["tasks"]}
     if len(tasks) != len(current["tasks"]):
         raise ValueError("duplicate WBS ID")
@@ -145,7 +153,7 @@ def render(plan):
         "",
         "변경관리: [관리 규칙](management/CONTROL.md) · "
         "[CR-0001](changes/CR-0001.md) · [CR-0002](changes/CR-0002.md) · "
-        "[CR-0003](changes/CR-0003.md) · "
+        "[CR-0003](changes/CR-0003.md) · [CR-0004](changes/CR-0004.md) · "
         "[일일 현황](management/STATUS.md)",
         "",
     ]

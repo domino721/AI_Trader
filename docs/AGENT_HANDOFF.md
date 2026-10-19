@@ -1,13 +1,15 @@
 # 다음 AI Agent 작업 인계 — 지표·데이터 확장
 
-2026-10-18 / 계획 v1.3.0 / CR-0003. 이 문서는 착수 안내이다. 지표·실데이터 적재·AI 토론이 구현됐다는 증거가 아니다.
+2026-10-19 / 현재 계획 v1.4.0 / CR-0003·CR-0004. 이 문서는 착수 안내이다. 지표·실데이터 적재·AI 토론이 구현됐다는 증거가 아니다.
 
 ## 먼저 읽기
 
 1. 저장소 `AGENTS.md`, `README.md`, `PROJECT_PLAN.md`, `DECISIONS.md`, `OPERATING_MODEL.md`.
-2. `management/STATUS.md`, `WBS.md`, `management/CONTROL.md`, `changes/CR-0003.md`.
+2. `management/STATUS.md`, `WBS.md`, `management/CONTROL.md`, `changes/CR-0003.md`, `changes/CR-0004.md`.
 3. [지표·데이터 설계](INDICATOR_DATA_DESIGN.md): 첨부 지표의 핵심/선택/제외 매핑·입출력/시점 계약·운영 DAG.
 4. 기존 `DATA_MVP.md`, `KNOWLEDGE_CONTRACT.md`, `OPERATIONS.md`와 해당 검증 기록. 과거 실적과 현재 파일 존재를 구분한다.
+
+포트폴리오 관련 후속 작업 전 [PM·최종 결정 백테스트 설계](PORTFOLIO_BACKTEST.md)를 읽습니다. 3.3은 이론 문헌 확장·상관/위험 기여 계산·최종 제안, 4.2–4.4는 전체 결정 생성/재생·토론 × PM 비교를 수용합니다. 이번에도 실제 AI/백테스트는 미구현이며 아래 데이터 첫 작업 순서는 유지합니다.
 
 ## 첫 작업은 WBS 1.9
 

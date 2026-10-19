@@ -1,0 +1,13 @@
+{
+  "version": "1.4.0",
+  "date": "2026-10-19",
+  "scope": "CR-0004: portfolio theory PM and final decision backtest design over v1.3; implementation pending",
+  "sha256": {
+    "PROJECT_PLAN.md": "7ec8b98b5574798e68351d2a29b8877a73e65f2edd5bbbe49111c4103d6c1476",
+    "OPERATING_MODEL.md": "a4265ea3a57d0157eaf8abed1430e327c7a94ddd211b2c4ad1dfa404d3618d0a",
+    "DECISIONS.md": "f9f5fe46f76935e10805f3ee6dcec60887f92ba460bb8f5edf8c55e42b2729ff",
+    "PORTFOLIO_BACKTEST.md": "67d77c06195d29693fe49b8b7a5b97978f5c1d81a96b5e6ea66156322901da6a",
+    "CR-0004.md": "b19e2a449f70aff90bf32181221c842136c5a539da6a6f116ab9d653330e4195",
+    "wbs.toml": "f47636165c88bdeb6d76df943bf9853d89398805be99cedaa503e78033baf20d"
+  }
+}

@@ -34,7 +34,7 @@ def planning(tmp_path):
 def test_current_plan_preserves_old_baselines_and_requires_windows_acceptance(planning):
     module, _ = planning
     plan = module.validate()
-    assert plan["plan_version"] == "1.3.0"
+    assert plan["plan_version"] == "1.4.0"
     tasks = {t["id"]: t for t in plan["tasks"]}
     assert len(tasks) == 47
     assert tasks["0.6"]["status"] == "blocked"
@@ -42,9 +42,12 @@ def test_current_plan_preserves_old_baselines_and_requires_windows_acceptance(pl
     assert "1.19" in tasks["3.2"]["depends_on"]
     assert "1.19" in tasks["4.1"]["depends_on"]
     assert all(tasks[f"1.{i}"]["status"] == "not_started" for i in range(9, 20))
+    assert tasks["2.1"]["status"] == "done"
+    assert tasks["3.3"]["status"] == "not_started"
+    assert tasks["4.2"]["status"] == "not_started"
 
 
-@pytest.mark.parametrize("version", ["v1.1", "v1.2", "v1.3"])
+@pytest.mark.parametrize("version", ["v1.1", "v1.2", "v1.3", "v1.4"])
 def test_any_immutable_baseline_change_is_rejected(planning, version):
     module, root = planning
     path = root / "docs/baselines" / version / "wbs.toml"
@@ -65,9 +68,10 @@ def test_original_design_manifest_is_checked(planning):
         module.validate()
 
 
-def test_missing_change_request_is_rejected(planning):
+@pytest.mark.parametrize("number", ["0002", "0004"])
+def test_missing_change_request_is_rejected(planning, number):
     module, root = planning
-    (root / "docs/changes/CR-0002.md").unlink()
+    (root / f"docs/changes/CR-{number}.md").unlink()
     with pytest.raises(ValueError, match="change request"):
         module.validate()
 
@@ -82,4 +86,12 @@ def test_scope_change_without_new_baseline_is_rejected(planning):
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="baseline scope"):
+        module.validate()
+
+
+def test_portfolio_design_snapshot_is_immutable(planning):
+    module, root = planning
+    path = root / "docs/baselines/v1.4/PORTFOLIO_BACKTEST.md"
+    path.write_text(path.read_text(encoding="utf-8") + "changed", encoding="utf-8")
+    with pytest.raises(ValueError, match="immutable design"):
         module.validate()
